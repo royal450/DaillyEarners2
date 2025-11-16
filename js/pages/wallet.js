@@ -168,33 +168,34 @@ function setupWithdrawalForm() {
   const form = document.getElementById('withdrawalForm');
   if (!form) return;
 
-  // Prevent default form submission, use button click instead
-  const withdrawBtn = form.querySelector('.withdraw-btn');
+  const withdrawBtn = document.querySelector('.withdraw-btn');
   if (withdrawBtn) {
-    withdrawBtn.addEventListener('click', (e) => {
+    withdrawBtn.addEventListener('click', async (e) => {
       e.preventDefault();
-      handleWithdrawal(e);
+      await handleWithdrawal();
     });
   }
 }
 
 // Handle withdrawal request
-async function handleWithdrawal(e) {
-  e.preventDefault();
+async function handleWithdrawal() {
+  const amount = parseFloat(document.getElementById('withdrawAmount').value);
+  const method = document.getElementById('paymentMethod').value;
 
-  const submitBtn = e.target.querySelector('button[type="submit"]');
-  const amount = parseFloat(document.getElementById('withdrawalAmount').value);
-  const method = document.getElementById('withdrawalMethod').value;
+  // Validate amount
+  if (!amount || isNaN(amount)) {
+    showToast('Please enter a valid amount', 'error');
+    return;
+  }
 
-  // Get user balance
-  const userData = await getData(`USERS/${currentUser.uid}`);
-  const balance = userData?.financialInfo?.balance || 0;
-
-  // Validate
   if (amount < 50) {
     showToast('Minimum withdrawal amount is ₹50', 'error');
     return;
   }
+
+  // Get user data and balance
+  const userData = await getData(`USERS/${currentUser.uid}`);
+  const balance = userData?.financialInfo?.balance || 0;
 
   if (amount > balance) {
     showToast('Insufficient balance', 'error');
@@ -203,13 +204,13 @@ async function handleWithdrawal(e) {
 
   // Get payment details based on method
   let details = {};
-  if (method === 'UPI') {
+  if (method === 'upi') {
     const upiId = document.getElementById('upiId')?.value;
-    if (!upiId) {
+    if (!upiId || upiId.trim() === '') {
       showToast('Please enter UPI ID', 'error');
       return;
     }
-    details = { upiId };
+    details = { upiId: upiId.trim() };
   } else {
     const accountNumber = document.getElementById('accountNumber')?.value;
     const ifscCode = document.getElementById('ifscCode')?.value;
@@ -219,49 +220,69 @@ async function handleWithdrawal(e) {
       showToast('Please fill all bank details', 'error');
       return;
     }
-    details = { accountNumber, ifscCode, accountName };
+    details = { 
+      accountNumber: accountNumber.trim(), 
+      ifscCode: ifscCode.trim(), 
+      accountName: accountName.trim() 
+    };
   }
 
   const confirmed = await showConfirm(
     'Confirm Withdrawal',
-    `Request withdrawal of ${formatCurrency(amount)} via ${method}?`,
+    `Request withdrawal of ${formatCurrency(amount)} via ${method.toUpperCase()}?`,
     'Confirm',
     'Cancel'
   );
 
   if (!confirmed) return;
 
-  showLoading(submitBtn, 'Processing...');
+  showLoading('Processing...');
 
   try {
     // Create withdrawal request
-    const requestId = await pushData('WITHDRAWALS', {
+    const withdrawalData = {
       userId: currentUser.uid,
-      amount,
-      method,
-      details,
+      amount: amount,
+      method: method.toUpperCase(),
+      details: details,
       status: 'pending',
       timestamp: getServerTimestamp()
+    };
+
+    const requestId = await pushData('WITHDRAWALS', withdrawalData);
+
+    // Create transaction record
+    await pushData('TRANSACTIONS', {
+      userId: currentUser.uid,
+      type: 'debit',
+      amount: amount,
+      reason: `Withdrawal request (${method.toUpperCase()}) - Pending`,
+      timestamp: getServerTimestamp(),
+      withdrawalId: requestId
     });
 
     // Send notification
     const userName = userData.personalInfo?.name || 'User';
-    const userEmail = userData.personalInfo?.email || '';
-    await notifyWithdrawalRequest(userName, userEmail, amount, method, details);
+    const userEmail = userData.personalInfo?.email || currentUser.email || '';
+    await notifyWithdrawalRequest(userName, userEmail, amount, method.toUpperCase(), details);
 
     showToast('Withdrawal request submitted successfully!', 'success');
 
     // Reset form
-    e.target.reset();
+    document.getElementById('withdrawAmount').value = '';
+    document.getElementById('upiId').value = '';
+    document.getElementById('accountNumber').value = '';
+    document.getElementById('ifscCode').value = '';
+    document.getElementById('accountName').value = '';
 
     // Reload withdrawal history
-    loadWithdrawalHistory();
+    await loadWithdrawalHistory();
 
   } catch (error) {
     console.error('Withdrawal error:', error);
-    showToast('Error submitting withdrawal request', 'error');
+    showToast('Error submitting withdrawal request. Please try again.', 'error');
   } finally {
-    hideLoading(submitBtn);
+    hideLoading();
   }
 }
 

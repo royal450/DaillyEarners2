@@ -534,24 +534,72 @@ async function loadWithdrawalsView() {
 }
 
 async function approveWithdrawal(withdrawalId, userId, amount) {
-  await updateBalance(userId, -amount, 'Withdrawal approved');
-  await updateData(`WITHDRAWALS/${withdrawalId}`, { status: 'approved', processedAt: getServerTimestamp() });
-  showToast('Withdrawal approved!', 'success');
-  loadView('withdrawals');
+  try {
+    // Deduct balance
+    await updateBalance(userId, -amount, 'Withdrawal approved');
+    
+    // Update withdrawal status
+    await updateData(`WITHDRAWALS/${withdrawalId}`, { 
+      status: 'approved', 
+      processedAt: getServerTimestamp() 
+    });
+    
+    // Create transaction record
+    await pushData('TRANSACTIONS', {
+      userId: userId,
+      type: 'debit',
+      amount: amount,
+      reason: 'Withdrawal approved',
+      timestamp: getServerTimestamp(),
+      withdrawalId: withdrawalId
+    });
+    
+    showToast('Withdrawal approved and processed!', 'success');
+    loadView('withdrawals');
+  } catch (error) {
+    console.error('Error approving withdrawal:', error);
+    showToast('Error processing withdrawal', 'error');
+  }
 }
 
 async function rejectWithdrawal(withdrawalId, userId) {
   const { value: reason } = await Swal.fire({
     title: 'Rejection Reason',
     input: 'text',
-    inputPlaceholder: 'Enter reason',
-    showCancelButton: true
+    inputPlaceholder: 'Enter reason (required)',
+    showCancelButton: true,
+    inputValidator: (value) => {
+      if (!value) {
+        return 'Please enter a reason';
+      }
+    }
   });
   
   if (reason) {
-    await updateData(`WITHDRAWALS/${withdrawalId}`, { status: 'rejected', adminReason: reason, processedAt: getServerTimestamp() });
-    showToast('Withdrawal rejected!', 'success');
-    loadView('withdrawals');
+    try {
+      // Update withdrawal status
+      await updateData(`WITHDRAWALS/${withdrawalId}`, { 
+        status: 'rejected', 
+        adminReason: reason, 
+        processedAt: getServerTimestamp() 
+      });
+      
+      // Create transaction record
+      await pushData('TRANSACTIONS', {
+        userId: userId,
+        type: 'credit',
+        amount: 0,
+        reason: `Withdrawal rejected: ${reason}`,
+        timestamp: getServerTimestamp(),
+        withdrawalId: withdrawalId
+      });
+      
+      showToast('Withdrawal rejected!', 'success');
+      loadView('withdrawals');
+    } catch (error) {
+      console.error('Error rejecting withdrawal:', error);
+      showToast('Error processing rejection', 'error');
+    }
   }
 }
 
