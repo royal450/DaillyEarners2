@@ -1,0 +1,451 @@
+🚀 COMPLETE CashByKing Project Specification - AI Friendly Prompt
+
+🎯 PROJECT TITLE
+
+CashByKing - Complete Reward Platform (Static Web Application)
+
+---
+
+📋 TECHNICAL CONSTRAINTS - STRICTLY FOLLOW
+
+```
+❌ NO Node.js | NO Express | NO Server-side code
+❌ NO Local Storage for critical data
+❌ NO SQL Databases | NO MongoDB
+✅ ONLY Static HTML/CSS/JavaScript
+✅ ONLY Firebase Real-time Database
+✅ ONLY onValue() Snapshot Listeners for real-time updates
+✅ PURE Client-side processing
+```
+
+---
+
+🏗️ ARCHITECTURE SPECIFICATION
+
+Core Technology Stack
+
+· Frontend: Vanilla HTML5, CSS3, JavaScript ES6+
+· Database: Firebase Real-time Database
+· Authentication: Firebase Auth
+· Hosting: Static Hosting (Netlify/Vercel/GitHub Pages)
+· Real-time Updates: Firebase onValue() listeners
+
+File Structure Required
+
+```
+CashByKing/
+├── 📱 Pages (HTML)
+│   ├── index.html              # Signup with referral detection
+│   ├── dashboard.html          # Main user dashboard
+│   ├── wallet.html            # Balance & withdrawals
+│   ├── task-detail.html       # Task instructions & submission
+│   ├── pending-tasks.html     # Task approval status
+│   ├── checkin.html          # Daily rewards system
+│   ├── referral.html         # Referral tracking
+│   ├── settings.html         # Profile management
+│   ├── transactions.html     # Transaction history
+│   └── admin.html           # Admin control panel
+├── 🎨 Styling (CSS)
+│   ├── styles.css           # Global styles
+│   ├── dashboard.css        # Dashboard specific
+│   └── admin.css           # Admin panel styles
+├── ⚙️ Logic (JavaScript)
+│   ├── firebase-config.js   # Firebase initialization
+│   ├── auth.js             # Authentication handling
+│   ├── dashboard.js        # Dashboard functionality
+│   ├── wallet.js          # Financial operations
+│   ├── tasks.js           # Task management
+│   ├── referral.js        # Referral system
+│   ├── admin.js          # Admin operations
+│   └── notifications.js   # Telegram/notifications
+└── 🔧 Configuration
+    ├── manifest.json      # PWA configuration
+    └── service-worker.js  # Offline functionality
+```
+
+---
+
+🔥 CORE FEATURES - DETAILED SPECIFICATION
+
+1. AUTHENTICATION & SESSION SYSTEM
+
+```javascript
+// REQUIREMENT: 1 YEAR SESSION PERSISTENCE
+- Firebase Authentication
+- Auto-redirect authenticated users to dashboard
+- Session validation on every page load
+- 365 days persistent login
+- New users see only signup form
+```
+
+2. REFERRAL SYSTEM - AUTOMATIC DETECTION
+
+```javascript
+// URL: https://website.com/signup?ref=DNAZU56
+- Auto-populate referral code from URL
+- Disable referral input field
+- Show "YeH! You got 5rs instantly" message
+- 5rs bonus to referrer on successful signup
+- Additional 10rs when referred user completes first approved task
+- Generate unique referral code for each new user
+```
+
+3. DASHBOARD - REAL-TIME PROFILE
+
+```javascript
+// Live user data display:
+- Name, Join Date, Referral Code
+- Badge System: "new" (red) → "verified" (green) - Admin controlled
+- Telegram integration card (mandatory for verification)
+- Remove Telegram card after admin verification
+- Real-time balance display
+- Active task cards
+```
+
+4. TASK MANAGEMENT SYSTEM
+
+```javascript
+// Admin Task Creation Form:
+- Task Title, Description, Instructions
+- Task Thumbnail URL (optional)
+- Step-by-step instructions (numbered, modern design)
+- Task URL, Task Price
+- Important warnings/instructions
+- Instant notification to all users
+
+// Task Card Features:
+- Thumbnail or gradient placeholder
+- Random "liked by X users" (100-600, one-time generation)
+- Like button (+1 in database, one like per user)
+- Real-time price display
+- "Start Task" button
+```
+
+5. TASK COMPLETION FLOW
+
+```javascript
+User Journey:
+1. Click "Start Task" → task-detail.html
+2. View complete instructions from admin
+3. Click "Visit Task" (admin provided URL)
+4. Complete task externally
+5. Return and click "Submit for Review"
+6. Task goes to admin pending queue
+7. Admin: Approve → Instant credit | Reject → Show reason
+```
+
+6. WALLET & WITHDRAWAL SYSTEM
+
+```javascript
+// Balance Management:
+- Real-time balance from database (admin controlled)
+- Minimum withdrawal: 50rs
+- Withdrawal methods: UPI/Bank
+- Request → Pending → Admin Action
+- Approved: "Funds Withdrawn Successfully"
+- Rejected: Balance deducted + rejection reason
+
+// Transaction History:
+- Green (+) for credits
+- Red (-) for debits
+- Real-time updates
+```
+
+7. DAILY CHECK-IN SYSTEM
+
+```javascript
+// 7-Day Reward Cycle:
+- Random amount: 1-10rs daily
+- 24-hour lock between check-ins
+- Direct database balance update
+- Track daily claims
+- 7-day continuous cycle
+```
+
+8. PROFILE & SETTINGS
+
+```javascript
+// Editable Profile:
+- Profile picture URL
+- Username modification
+- Theme switching (light/dark - database stored)
+- Real-time theme sync across all pages
+- Account deletion with double confirmation
+```
+
+---
+
+👑 ADMIN PANEL - COMPLETE CONTROL
+
+User Management
+
+· View all users (email, join date, status)
+· Ban/Delete users instantly
+· Verify users (badge assignment)
+· Custom badge assignment/removal
+
+Task Management
+
+· Add/Edit/Delete/Enable/Disable tasks
+· Task moderation system
+· Bulk task operations
+
+Financial Control
+
+· Approve/Reject/Hold withdrawal requests
+· Bulk bonus distribution to all users
+· Manual balance adjustment per user
+· Transaction monitoring
+
+Pending Tasks Review
+
+· Review user task submissions
+· Approve → Instant credit to user
+· Reject → Custom reason display
+· Real-time status updates
+
+---
+
+🔗 INTEGRATION SPECIFICATIONS
+
+Firebase Configuration
+
+```javascript
+const firebaseConfig = {
+  apiKey: "AIzaSyBuioOF7DCq-qIoa1D6ZyZbrAVeGjbfv3Y",
+  authDomain: "daily-campaign-king.firebaseapp.com",
+  databaseURL: "https://daily-campaign-king-default-rtdb.firebaseio.com",
+  projectId: "daily-campaign-king",
+  storageBucket: "daily-campaign-king.appspot.com",
+  messagingSenderId: "123456789",
+  appId: "1:123456789:web:abc123def456"
+};
+```
+
+Telegram Bot Integration
+
+```javascript
+BOT_TOKEN: "8567617667:AAGa4n-yus8ZG5CsUJAL_jxzw8ER1I15JkQ"
+CHAT_ID: "6320914640"
+
+// Notifications for:
+- New user registrations (with full details)
+- Task completion submissions
+- Withdrawal requests
+- Admin activities
+```
+
+WhatsApp Support Integration
+
+```javascript
+SUPPORT_NUMBER: "+91 9104037184"
+// Pre-formatted support message:
+"HELLO SIR I NEED HELP FROM CASHBYKING PLEASE HELP ME FOR BETTER GUIDANCE\nUSERNAME: {username}\nUSERID: {userId}\nREFERRAL ID: {refCode}"
+```
+
+Telegram Channel Integration
+
+```javascript
+TELEGRAM_CHANNEL: "https://t.me/CashByKing"
+// Mandatory for user verification
+// Show on dashboard until user verified
+```
+
+---
+
+🗃️ DATABASE STRUCTURE - FIREBASE REAL-TIME
+
+```
+CASHBYKING_ALL_DATA/
+├── USERS/
+│   ├── {userId}/
+│   │   ├── personalInfo/
+│   │   │   ├── name: string
+│   │   │   ├── email: string
+│   │   │   ├── refCode: string
+│   │   │   ├── uplineCode: string (if referred)
+│   │   │   ├── joinDate: timestamp
+│   │   │   ├── verified: boolean
+│   │   │   └── badges: array
+│   │   ├── financialInfo/
+│   │   │   ├── balance: number
+│   │   │   ├── totalEarned: number
+│   │   │   └── withdrawalMethod: object
+│   │   ├── taskHistory/
+│   │   │   ├── completed: number
+│   │   │   ├── pending: number
+│   │   │   └── rejected: number
+│   │   └── sessionData/
+│   │       └── sessionId: string (1 year validity)
+├── TASKS/
+│   ├── {taskId}/
+│   │   ├── title: string
+│   │   ├── description: string
+│   │   ├── instructions: array
+│   │   ├── price: number
+│   │   ├── url: string
+│   │   ├── thumbnail: string
+│   │   ├── likes: number
+│   │   ├── status: "active"|"inactive"
+│   │   └── completedBy: array
+├── PENDING_TASKS/
+│   ├── {submissionId}/
+│   │   ├── userId: string
+│   │   ├── taskId: string
+│   │   ├── status: "pending"|"approved"|"rejected"
+│   │   ├── submittedAt: timestamp
+│   │   └── adminFeedback: string
+├── WITHDRAWALS/
+│   ├── {requestId}/
+│   │   ├── userId: string
+│   │   ├── amount: number
+│   │   ├── method: "UPI"|"BANK"
+│   │   ├── status: "pending"|"approved"|"rejected"
+│   │   ├── details: object
+│   │   └── adminReason: string
+├── TRANSACTIONS/
+│   ├── {transactionId}/
+│   │   ├── userId: string
+│   │   ├── type: "credit"|"debit"
+│   │   ├── amount: number
+│   │   ├── reason: string
+│   │   └── timestamp: timestamp
+└── ADMIN_DATA/
+    ├── bulkBonuses/
+    ├── systemSettings/
+    └── notificationLogs/
+```
+
+---
+
+🎨 UI/UX REQUIREMENTS
+
+Design System
+
+· Glassmorphism effects for cards
+· Modern gradient backgrounds
+· Responsive mobile-first design
+· Smooth animations and transitions
+· Color-coded status indicators
+· Professional badge system
+
+Theme System
+
+· Light/Dark theme toggle
+· Database-stored theme preference
+· Real-time theme sync across all pages
+· System preference detection
+
+User Experience
+
+· Instant page loads
+· Real-time data synchronization
+· Form validation with feedback
+· Loading states and progress indicators
+· Offline capability with service worker
+
+---
+
+🔄 REAL-TIME IMPLEMENTATION
+
+Snapshot Listeners Pattern
+
+```javascript
+// EVERY critical data uses real-time listeners
+onValue(ref(db, `USERS/${userId}/balance`), (snapshot) => {
+    const balance = snapshot.val();
+    document.getElementById('userBalance').textContent = balance;
+    // Instant UI update without page refresh
+});
+
+// Implementation for:
+// - Balance updates
+// - Task status changes
+// - Withdrawal request updates
+// - Profile modifications
+// - Notification counts
+```
+
+---
+
+📱 PROGRESSIVE WEB APP FEATURES
+
+manifest.json
+
+```json
+{
+  "name": "CashByKing",
+  "short_name": "CBK", 
+  "start_url": "/index.html",
+  "display": "standalone",
+  "theme_color": "#6366f1",
+  "background_color": "#ffffff",
+  "icons": [...],
+  "scope": "/",
+  "orientation": "portrait"
+}
+```
+
+Service Worker
+
+· Offline functionality
+· Resource caching
+· Push notification support
+· Fast loading on repeat visits
+
+---
+
+🧪 VALIDATION & ERROR HANDLING
+
+Client-side Validation
+
+· Form input validation
+· Balance verification before withdrawals
+· Task completion checks
+· Referral code validation
+· Network status monitoring
+
+Error Handling
+
+· Firebase connection errors
+· Authentication failures
+· Database permission issues
+· Offline state management
+
+---
+
+🚀 DEPLOYMENT SPECIFICATION
+
+Static Hosting Ready
+
+· No server configuration needed
+· Compatible with Netlify, Vercel, GitHub Pages
+· Environment variables for Firebase config
+· CDN for fast global access
+
+Performance Targets
+
+· Page load time: < 3 seconds
+· Real-time update delay: < 1 second
+· Mobile optimization score: 90+
+· PWA lighthouse score: 90+
+
+---
+
+✅ SUCCESS CRITERIA
+
+· ✅ 100% Static - No server-side code
+· ✅ Real-time Updates - Firebase onValue listeners
+· ✅ 1-Year Session - Persistent authentication
+· ✅ Admin Control - Complete financial management
+· ✅ Referral System - Automatic detection & rewards
+· ✅ Task Management - End-to-end workflow
+· ✅ Mobile Responsive - Works on all devices
+· ✅ Offline Capable - PWA functionality
+· ✅ Telegram Integration - Real-time notifications
+· ✅ Professional UI - Modern glassmorphism design
+
+---
+
+🎯 FINAL INSTRUCTION TO AI:
+"Create a COMPLETE static web application using ONLY HTML/CSS/JS and Firebase Real-time Database with onValue snapshot listeners.Implement ALL features specified above with professional UI, real-time updates, and strict adherence to the technical constraints. Generate ALL required files with complete functionality."

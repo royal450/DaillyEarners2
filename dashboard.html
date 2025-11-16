@@ -1,0 +1,1059 @@
+
+<!-- Add this in the menu dropdown section where other menu items are -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CashByKing - Modern Wallet</title>
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- PWA Support -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="CashByKing">
+  <!-- Meta Theme Colors -->
+  <meta name="theme-color" content="#6366f1" id="themeColorMeta">
+  <meta name="msapplication-navbutton-color" content="#6366f1">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
+
+<style>
+
+
+
+      /* ---------- Reset & base ---------- */
+      *{
+        margin:0;
+        padding:0;
+        box-sizing:border-box;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        user-select:none;
+      }
+
+      :root{
+        /* Light Theme tokens */
+        --bg-color: #f8fafc;
+        --nav-bg: rgba(255,255,255,0.98);
+        --text-color: #1e293b;
+        --accent-color: #6366f1;
+        --accent-gradient: linear-gradient(135deg,#6366f1,#8b5cf6);
+        --icon-bg: #f1f5f9;
+        --icon-color: #64748b;
+        --border-color: rgba(0,0,0,0.08);
+        --shadow: 0 8px 30px rgba(0,0,0,0.08);
+        --card-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        --container-width: 90%;
+        --nav-height: 80px;
+        --border-radius: 16px;
+      }
+
+      [data-theme="dark"]{
+        --bg-color: #0f172a;
+        --nav-bg: rgba(15,23,42,0.98);
+        --text-color: #f1f5f9;
+        --accent-color: #818cf8;
+        --accent-gradient: linear-gradient(135deg,#818cf8,#a78bfa);
+        --icon-bg: rgba(255,255,255,0.08);
+        --icon-color: #cbd5e1;
+        --border-color: rgba(255,255,255,0.1);
+        --shadow: 0 8px 30px rgba(0,0,0,0.3);
+        --card-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      }
+
+      html, body{
+        height:100%;
+        font-size: 16px;
+      }
+
+      body{
+        background: var(--bg-color);
+        color: var(--text-color);
+        min-height:100vh;
+        transition: all 0.3s ease;
+        padding:0;
+        margin:0;
+        line-height: 1.6;
+      }
+
+      /* ---------- Nav container ---------- */
+      .nav-container{
+        background: var(--nav-bg);
+        backdrop-filter: blur(20px);
+        border-bottom: 1px solid var(--border-color);
+        padding: 0 5%;
+        height: var(--nav-height);
+        position: fixed;
+        top:0;
+        left:0;
+        right:0;
+        z-index:1000;
+        box-shadow: var(--shadow);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+      }
+
+      .navbar{
+        display:flex;
+        justify-content:space-between;
+        align-items:center;
+        width: 100%;
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .brand{
+        display:flex;
+        align-items:center;
+        gap: 12px;
+        cursor:pointer;
+        transform-origin: left center;
+        transition: all 0.3s ease;
+      }
+
+      .logo{
+        width: 50px;
+        height: 50px;
+        background: var(--accent-gradient);
+        border-radius: 50%;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        color:white;
+        font-weight:800;
+        font-size: 22px;
+        box-shadow: 0 4px 15px rgba(99,102,241,0.3);
+        transition: all 0.3s ease;
+      }
+
+      .brand:hover .logo{
+        transform: rotate(15deg) scale(1.05);
+      }
+
+      .brand-name{
+        font-size: 20px;
+        font-weight:800;
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        letter-spacing:-0.5px;
+      }
+
+      .nav-right { display: flex; align-items: center; gap: 12px; }
+      .theme-toggle { display: flex; align-items: center; gap: 8px; background: transparent; padding: 10px 6px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; border: 0px solid var(--border-color); }
+      .theme-toggle:hover { transform: translateY(-2px); box-shadow: 0 1px 15px rgba(0,0,0,0.1); }
+      .toggle-slider { width: 50px; height: 26px; background: var(--icon-bg); border-radius: 50px; position: relative; transition: all 0.3s ease; border: 1px solid var(--border-color); }
+      .toggle-slider::before { content:''; position:absolute; width:20px; height:20px; border-radius:50%; background: var(--accent-gradient); top:2px; left:3px; transition: all 0.3s ease; }
+      [data-theme="dark"] .toggle-slider::before { transform: translateX(22px); }
+      .theme-text { font-size: 16px; font-weight:600; color: var(--text-color); }
+      .nav-icons { display:flex; align-items:center; gap: 12px; }
+      .icon-container { display:flex; align-items:center; justify-content:center; width: 50px; height: 50px; border-radius: 14px; background: var(--icon-bg); color: var(--icon-color); cursor:pointer; transition: all 0.3s ease; position:relative; border: 1px solid var(--border-color); font-size: 18px; }
+      .icon-container:hover { transform: translateY(-3px); background: var(--accent-color); color: white; box-shadow: 0 8px 20px rgba(99,102,241,0.3); }
+      .notification-badge { position:absolute; top:-5px; right:-5px; background:#ef4444; color:white; border-radius:50%; width:20px; height:20px; font-size:11px; display:flex; align-items:center; justify-content:center; font-weight:700; }
+      .three-dots { display:flex; flex-direction:column; gap: 4px; cursor:pointer; align-items: center; justify-content: center; }
+      .dot { width:5px; height:5px; border-radius:50%; background:currentColor; transition: all 0.3s ease; }
+      .icon-container:hover .dot { background:white; }
+
+      /* Menu Dropdown */
+      .menu-dropdown { position:fixed; top: calc(var(--nav-height) + 10px); right: 5%; background: var(--nav-bg); backdrop-filter: blur(20px); border-radius: var(--border-radius); box-shadow: var(--shadow); padding: 16px; width: 240px; z-index:1000; opacity:0; transform: translateY(-10px); visibility:hidden; transition: all 0.3s ease; border: 1px solid var(--border-color); max-height: 80vh; overflow-y: auto; }
+      .menu-dropdown.active { opacity:1; transform: translateY(0); visibility:visible; }
+      .menu-item { display:flex; align-items:center; gap: 12px; padding: 14px; border-radius: 12px; cursor:pointer; transition: all 0.3s ease; color: var(--text-color); text-decoration:none; font-size: 16px; }
+      .menu-item:hover { background: var(--icon-bg); color: var(--accent-color); transform: translateX(5px); }
+      .menu-item i { width: 20px; text-align:center; font-size: 16px; }
+      .menu-divider { height:1px; background: var(--border-color); margin: 8px 0; }
+
+      /* Hamburger Menu Icon */
+      .hamburger-menu {
+        display: none; /* Hidden by default */
+        flex-direction: column;
+        gap: 5px;
+        cursor: pointer;
+        width: 30px;
+        height: 30px;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .hamburger-menu .bar {
+        width: 100%;
+        height: 3px;
+        background-color: var(--text-color);
+        border-radius: 2px;
+        transition: all 0.3s ease;
+      }
+
+      /* Content area */
+      .content{
+        padding: calc(var(--nav-height) + 40px) 5% 60px;
+        text-align:center;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      .content h1{
+        font-size: 3.5rem;
+        margin-bottom: 20px;
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        font-weight: 800;
+        line-height: 1.2;
+      }
+
+      .content p{
+        font-size: 1.3rem;
+        color: var(--icon-color);
+        line-height:1.7;
+        max-width: 700px;
+        margin: 0 auto 30px;
+      }
+
+      /* Card component (telegram join) */
+      .card-wrapper{
+        width: 100%;
+        max-width: 500px;
+        margin: 5px auto 0;
+        border-radius: var(--border-radius);
+        overflow: visible;
+      }
+
+      .card{
+        position:relative;
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap: 20px;
+        padding: 25px;
+        border-radius: var(--border-radius);
+        background: var(--nav-bg);
+        border: 1px solid var(--border-color);
+        box-shadow: var(--card-shadow);
+        backdrop-filter: blur(10px);
+        overflow:hidden;
+        transition: all 0.3s ease;
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+      }
+
+      .card .glass-bg{
+        position:absolute;
+        inset:0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(139,92,246,0.05));
+        z-index:0;
+      }
+
+      .card .shine{
+        position:absolute;
+        top:0;
+        left:0;
+        width:100%;
+        height:1px;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+        z-index:0;
+      }
+
+      .card .small-icon{
+        position:absolute;
+        top:10px;
+        left:10px;
+        font-size: 16px;
+        color: #60a5fa;
+        z-index:0;
+      }
+
+      .card .small-icon.right{
+        bottom:10px;
+        right:10px;
+        top:auto;
+        color:#34d399;
+      }
+
+      .telegram-logo{
+        position:relative;
+        z-index:10;
+        width: 70px;
+        height: 70px;
+        min-width: 70px;
+        min-height: 70px;
+        border-radius: 18px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        background: linear-gradient(135deg, rgba(59,130,246,0.9), rgba(139,92,246,0.9));
+        color:white;
+        font-size: 30px;
+        font-weight:700;
+        border: 1px solid rgba(255,255,255,0.3);
+        box-shadow: 0 8px 25px rgba(59,130,246,0.4);
+        transition: transform 0.3s ease;
+      }
+
+      .telegram-logo:hover{
+        transform: scale(1.08) rotate(5deg);
+      }
+
+      .card-content{
+        z-index:10;
+        flex:1;
+        text-align:left;
+      }
+
+      .card .title{
+        font-size: 22px;
+        font-weight:900;
+        background: linear-gradient(90deg, #7c3aed, #ec4899, #ef4444);
+        -webkit-background-clip: text;
+        background-clip:text;
+        color:transparent;
+        margin-bottom:8px;
+      }
+
+      .card .meta{
+        font-size: 14px;
+        color: var(--icon-color);
+        display:flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items:center;
+        margin-bottom:10px;
+      }
+
+      .card .meta i{
+        font-size: 14px;
+      }
+
+      .join-btn{
+        z-index:10;
+        padding: 14px 24px;
+        border-radius: 14px;
+        background: linear-gradient(135deg,#10b981,#059669);
+        border: 1px solid rgba(255,255,255,0.3);
+        color:white;
+        font-size: 16px;
+        font-weight:900;
+        display:inline-flex;
+        align-items:center;
+        gap: 10px;
+        min-width: 120px;
+        justify-content:center;
+        box-shadow: 0 8px 25px rgba(16,185,129,0.3);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+      }
+
+      .join-btn:hover{
+        transform: scale(1.05);
+        box-shadow: 0 12px 30px rgba(16,185,129,0.4);
+      }
+
+      .join-btn i{
+        font-size: 18px;
+      }
+
+      /* Stats Section */
+      .stats-container {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 60px;
+        flex-wrap: wrap;
+      }
+
+      .stat-card {
+        background: var(--nav-bg);
+        border-radius: var(--border-radius);
+        padding: 25px;
+        text-align: center;
+        box-shadow: var(--card-shadow);
+        border: 1px solid var(--border-color);
+        min-width: 180px;
+        transition: all 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: var(--accent-gradient);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        margin-bottom: 8px;
+      }
+
+      .stat-label {
+        font-size: 16px;
+        color: var(--icon-color);
+        font-weight: 600;
+      }
+
+      /* Responsive Design */
+      @media (max-width: 1024px){
+        .content h1 {
+          font-size: 3rem;
+        }
+
+        .card {
+          padding: 20px;
+        }
+      }
+
+      @media (max-width: 768px){
+        :root {
+          --nav-height: 70px;
+        }
+
+        .nav-container{
+          padding: 0 4%;
+        }
+
+        .navbar .nav-icons {
+          display: none; /* Hide icons on small screens */
+        }
+
+        .navbar .nav-right {
+          gap: 15px; /* Adjust gap for hamburger and theme toggle */
+        }
+
+        .hamburger-menu {
+          display: flex; /* Show hamburger menu */
+        }
+
+        .brand-name{
+          font-size: 22px;
+        }
+
+        .logo{
+          width: 44px;
+          height: 44px;
+          font-size: 20px;
+        }
+
+        .theme-text{
+          display: inline-block;
+        }
+
+        .theme-toggle{
+          padding: 10px 14px;
+        }
+
+        .icon-container{
+          width: 44px;
+          height: 44px;
+        }
+
+        .menu-dropdown{
+          right: 4%;
+          width: 220px;
+        }
+
+        .content{
+          padding: calc(var(--nav-height) + 30px) 4% 40px;
+        }
+
+        .content h1{
+          font-size: 2.5rem;
+        }
+
+        .content p{
+          font-size: 1.2rem;
+        }
+
+        .card-wrapper{
+          margin-top: 30px;
+        }
+
+        .telegram-logo{
+          width: 60px;
+          height: 60px;
+          min-width: 60px;
+          min-height: 60px;
+          font-size: 26px;
+        }
+
+        .card {
+          flex-direction: column;
+          text-align: center;
+          gap: 20px;
+        }
+
+        .card-content {
+          order: 2;
+          text-align: center;
+        }
+
+        .telegram-logo {
+          order: 1;
+        }
+
+        .join-btn {
+          order: 3;
+          margin-top: 10px;
+        }
+
+        .stats-container {
+          gap: 20px;
+        }
+
+        .stat-card {
+          min-width: 150px;
+          padding: 20px;
+        }
+
+        .stat-value {
+          font-size: 2rem;
+        }
+      }
+
+      @media (max-width: 480px){
+        :root {
+          --nav-height: 65px;
+        }
+
+        .nav-right{
+          gap: 15px;
+        }
+
+        .icon-container{
+          width: 42px;
+          height: 42px;
+          font-size: 16px;
+        }
+
+        .menu-dropdown{
+          width: 200px;
+        }
+
+        .menu-item{
+          font-size: 15px;
+          padding: 12px;
+        }
+
+        .notification-badge{
+          width: 18px;
+          height: 18px;
+          font-size: 10px;
+        }
+
+        .join-btn{
+          padding: 12px 20px;
+          font-size: 15px;
+          min-width: 110px;
+        }
+
+        .telegram-logo{
+          width: 55px;
+          height: 55px;
+          font-size: 24px;
+        }
+
+        .brand-name {
+          font-size: 20px;
+        }
+
+        .theme-text {
+          display: none;
+        }
+
+        .content h1 {
+          font-size: 2rem;
+        }
+
+        .content p {
+          font-size: 1.1rem;
+        }
+
+        .stats-container {
+          gap: 15px;
+        }
+
+        .stat-card {
+          min-width: 130px;
+          padding: 15px;
+        }
+
+        .stat-value {
+          font-size: 1.8rem;
+        }
+      }
+
+      @media (max-width: 360px) {
+        .brand-name {
+          font-size: 18px;
+        }
+
+        .logo {
+          width: 40px;
+          height: 40px;
+          font-size: 18px;
+        }
+
+        .nav-container {
+          padding: 0 3%;
+        }
+
+        .content h1 {
+          font-size: 1.8rem;
+        }
+      }
+
+      /* For very large screens */
+      @media (min-width: 1600px) {
+        .content h1 {
+          font-size: 4rem;
+        }
+
+        .content p {
+          font-size: 1.5rem;
+        }
+      }
+
+  #data_card_teli{
+
+  width: 100%;
+  position: relative;
+  display: flex;
+
+
+  }
+
+  .whatsapp-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #25D366;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    box-shadow: 0 8px 25px rgba(37,211,102,0.4);
+    cursor: pointer;
+    z-index: 1000;
+    transition: all 0.3s ease;
+  }
+
+  .whatsapp-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 30px rgba(37,211,102,0.6);
+  }
+
+  .professional-footer {
+    background: var(--footer-bg);
+    backdrop-filter: blur(20px);
+    color: var(--footer-text);
+    padding: 40px 20px 25px;
+    width: 100%;
+    border-top: 1px solid var(--border-color);
+    margin-top: 60px;
+  }
+
+  .footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 35px;
+  }
+
+  .footer-section h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 18px;
+    color: var(--accent-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .footer-section p,
+  .footer-section a {
+    font-size: 14px;
+    line-height: 1.8;
+    opacity: 0.85;
+    color: var(--footer-text);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+  }
+
+  .footer-section a:hover {
+    opacity: 1;
+    color: var(--accent-color);
+    transform: translateX(5px);
+  }
+
+  .footer-section i {
+    margin-right: 10px;
+    width: 20px;
+    color: var(--accent-color);
+  }
+
+  .social-links {
+    display: flex;
+    gap: 15px;
+    margin-top: 15px;
+  }
+
+  .social-links a {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--accent-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 18px;
+    margin-bottom: 0;
+  }
+
+  .social-links a:hover {
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 10px 25px rgba(99,102,241,0.4);
+  }
+
+  .footer-bottom {
+    text-align: center;
+    padding-top: 25px;
+    margin-top: 30px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    font-size: 13px;
+    opacity: 0.7;
+  }
+
+  @media (max-width: 768px) {
+    .footer-content {
+      grid-template-columns: 1fr;
+      gap: 25px;
+    }
+  }
+
+</style>
+
+
+
+
+
+
+
+
+
+</head>
+<body data-theme="light">
+  <!-- Navigation Bar -->
+  <div class="nav-container">
+    <nav class="navbar">
+      <div class="brand" style="pointer-events:auto;" onclick="window.location.href='dashboard.html'">
+        <div class="logo">$</div>
+        <div class="brand-name">Ca$hByKing</div>
+      </div>
+
+      <div class="nav-right">
+        <div class="theme-toggle" id="themeToggle">
+          <span class="theme-text">Light</span>
+          <div class="toggle-slider" aria-hidden="true"></div>
+        </div>
+
+        <div class="nav-icons">
+          <div class="icon-container" id="walletBtn">
+            <i class="fas fa-wallet"></i>
+            <div class="notification-badge">3</div>
+          </div>
+
+          <div class="icon-container" id="menuBtn">
+            <div class="three-dots" aria-hidden="true">
+              <div class="dot"></div>
+              <div class="dot"></div>
+              <div class="dot"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Hamburger Menu Icon -->
+        <div class="hamburger-menu" id="hamburgerMenu">
+          <div class="bar"></div>
+          <div class="bar"></div>
+          <div class="bar"></div>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+  <!-- Menu Dropdown -->
+  <div class="menu-dropdown" id="menuDropdown" aria-hidden="true">
+    <a href="dashboard.html" class="menu-item"><i class="fas fa-home"></i><span>Home</span></a>
+    <a href="wallet.html" class="menu-item"><i class="fas fa-wallet"></i><span>Wallet</span></a>
+    <a href="transactions.html" class="menu-item"><i class="fas fa-exchange-alt"></i><span>Transactions</span></a>
+    <a href="referral.html" class="menu-item"><i class="fas fa-chart-line"></i><span>Refer & Earn</span></a>
+    <a href="checkin.html" class="menu-item"><i class="fas fa-calendar-check"></i><span>Daily Check-in</span></a>
+    <a href="pending-tasks.html" class="menu-item"><i class="fas fa-clock"></i><span>Pending Tasks</span></a>
+    <div class="menu-divider"></div>
+    <a href="admin.html" class="menu-item"><i class="fas fa-shield-alt"></i><span>Admin Panel</span></a>
+    <a href="settings.html" class="menu-item"><i class="fas fa-cog"></i><span>Settings</span></a>
+    <a href="https://wa.me/919104037184" target="_blank" class="menu-item"><i class="fas fa-phone"></i><span>Support</span></a>
+  </div>
+
+
+<!-- Ultra Compact Modern Profile Card -->
+  <div style="max-width: 500px; margin: 90px auto 15px; padding: 0 15px;">
+    <div style="background: var(--nav-bg); backdrop-filter: blur(20px); border-radius: 18px; padding: 18px; box-shadow: var(--shadow); border: 1px solid var(--border-color); position: relative; overflow: hidden; transition: all 0.3s ease;">
+      
+      <!-- Subtle Background Gradient -->
+      <div style="position: absolute; top: -30px; right: -30px; width: 100px; height: 100px; background: var(--accent-gradient); opacity: 0.06; border-radius: 50%; filter: blur(30px);"></div>
+      
+      <!-- Compact Header -->
+      <div style="position: relative; z-index: 1; display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+        <!-- Small Avatar -->
+        <div id="profileInitial" style="width: 50px; height: 50px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 800; box-shadow: 0 4px 12px rgba(99,102,241,0.25); flex-shrink: 0;">V</div>
+        
+        <!-- Name & Info -->
+        <div style="flex: 1; min-width: 0;">
+          <div id="profileName" style="font-size: 16px; font-weight: 800; color: var(--text-color); margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Loading...</div>
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 10px; color: var(--icon-color); font-weight: 600;">
+            <span><i class="fas fa-calendar" style="font-size: 9px;"></i> <span id="joinedDate">...</span></span>
+            <span style="opacity: 0.5;">•</span>
+            <span>Code: <span id="referralCode" style="font-family: monospace; color: var(--accent-color); font-weight: 700;">...</span></span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Compact Stats Grid -->
+      <div style="position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+        
+        <!-- Earnings -->
+        <div style="background: var(--icon-bg); border-radius: 12px; padding: 10px 8px; text-align: center; border: 1px solid var(--border-color); transition: all 0.3s ease;">
+          <div style="font-size: 9px; font-weight: 700; color: var(--icon-color); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Earnings</div>
+          <div id="profileEarnings" style="font-size: 16px; font-weight: 900; color: var(--accent-color);">₹0</div>
+        </div>
+        
+        <!-- Referrals -->
+        <div style="background: var(--icon-bg); border-radius: 12px; padding: 10px 8px; text-align: center; border: 1px solid var(--border-color); transition: all 0.3s ease;">
+          <div style="font-size: 9px; font-weight: 700; color: var(--icon-color); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Referrals</div>
+          <div id="totalReferrals" style="font-size: 16px; font-weight: 900; color: var(--accent-color);">₹0</div>
+        </div>
+        
+        <!-- Tasks -->
+        <div style="background: var(--icon-bg); border-radius: 12px; padding: 10px 8px; text-align: center; border: 1px solid var(--border-color); transition: all 0.3s ease;">
+          <div style="font-size: 9px; font-weight: 700; color: var(--icon-color); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Tasks</div>
+          <div id="tasksCompleted" style="font-size: 16px; font-weight: 900; color: var(--accent-color);">0</div>
+        </div>
+      </div>
+      
+      <!-- Compact Telegram Notice -->
+      <div id="telegramNotice" style="margin-top: 10px; display: none; background: var(--icon-bg); padding: 8px 12px; border-radius: 10px; border: 1px solid var(--border-color); font-size: 11px; position: relative; z-index: 1; text-align: center; color: var(--text-color);">
+        <i class="fas fa-shield-alt" style="color: var(--accent-color); margin-right: 6px; font-size: 11px;"></i>
+        <span style="font-weight: 600;">Join Telegram for verified badge</span>
+      </div>
+    </div>
+  </div>
+
+
+
+
+
+
+
+
+
+
+
+
+  <!-- Browser Notification Permission Card -->
+  <div id="notificationPermissionCard" style="max-width: 500px; margin: 0 auto 18px; padding: 0 15px; display: none;">
+    <div style="background: linear-gradient(135deg, #f59e0b, #d97706); backdrop-filter: blur(20px); border-radius: 18px; padding: 15px; box-shadow: 0 8px 25px rgba(245,158,11,0.3); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer;" onclick="requestNotificationPermission()">
+      
+      <!-- Gradient Overlay -->
+      <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); z-index: 0;"></div>
+      
+      <!-- Bell Icon -->
+      <div style="position: relative; z-index: 1; width: 45px; height: 45px; border-radius: 12px; background: rgba(255,255,255,0.25); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); flex-shrink: 0;">
+        <i class="fas fa-bell"></i>
+      </div>
+      
+      <!-- Content -->
+      <div style="position: relative; z-index: 1; flex: 1; min-width: 0;">
+        <div style="font-size: 14px; font-weight: 800; color: white; margin-bottom: 3px;">Enable Task Notifications</div>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.9); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span><i class="fas fa-rocket" style="font-size: 10px;"></i> Instant Alerts</span>
+          <span style="opacity: 0.7;">•</span>
+          <span><i class="fas fa-tasks" style="font-size: 10px;"></i> New Task Updates</span>
+        </div>
+      </div>
+      
+      <!-- Arrow -->
+      <div style="position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.25); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;">
+        <i class="fas fa-arrow-right"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compact Telegram Card -->
+  <div style="max-width: 500px; margin: 0 auto 18px; padding: 0 15px;">
+    <div style="background: var(--nav-bg); backdrop-filter: blur(20px); border-radius: 18px; padding: 15px; box-shadow: var(--shadow); border: 1px solid var(--border-color); display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer;" onclick="window.open('https://t.me/CashByKing', '_blank')">
+      
+      <!-- Gradient Overlay -->
+      <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(99,102,241,0.03), rgba(139,92,246,0.03)); z-index: 0;"></div>
+      
+      <!-- Telegram Icon -->
+      <div style="position: relative; z-index: 1; width: 45px; height: 45px; border-radius: 12px; background: linear-gradient(135deg, #0088cc, #0077b5); display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; box-shadow: 0 4px 15px rgba(0,136,204,0.3); flex-shrink: 0;">
+        <i class="fab fa-telegram"></i>
+      </div>
+      
+      <!-- Content -->
+      <div style="position: relative; z-index: 1; flex: 1; min-width: 0;">
+        <div style="font-size: 14px; font-weight: 800; color: var(--text-color); margin-bottom: 3px;">Join Telegram Channel</div>
+        <div style="font-size: 11px; color: var(--icon-color); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span><i class="fas fa-gift" style="font-size: 10px;"></i> ₹5 Reward</span>
+          <span style="opacity: 0.5;">•</span>
+          <span><i class="fas fa-rocket" style="font-size: 10px;"></i> Instant Updates</span>
+        </div>
+      </div>
+      
+      <!-- Arrow -->
+      <div style="position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;">
+        <i class="fas fa-arrow-right"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Browser Notification Card - PERMANENT (Always Visible Below Telegram) -->
+  <div id="notificationCard" style="max-width: 500px; margin: 0 auto 18px; padding: 0 15px;">
+    <div style="background: linear-gradient(135deg, #f59e0b, #d97706); backdrop-filter: blur(20px); border-radius: 18px; padding: 15px; box-shadow: 0 8px 25px rgba(245,158,11,0.3); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer;" onclick="requestNotificationPermission()">
+      
+      <!-- Gradient Overlay -->
+      <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); z-index: 0;"></div>
+      
+      <!-- Bell Icon -->
+      <div style="position: relative; z-index: 1; width: 45px; height: 45px; border-radius: 12px; background: rgba(255,255,255,0.25); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); flex-shrink: 0;">
+        <i class="fas fa-bell" id="notificationIcon"></i>
+      </div>
+      
+      <!-- Content -->
+      <div style="position: relative; z-index: 1; flex: 1; min-width: 0;">
+        <div style="font-size: 14px; font-weight: 800; color: white; margin-bottom: 3px;" id="notificationTitle">Enable Task Notifications</div>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.9); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;" id="notificationSubtitle">
+          <span><i class="fas fa-rocket" style="font-size: 10px;"></i> Instant Alerts</span>
+          <span style="opacity: 0.7;">•</span>
+          <span><i class="fas fa-tasks" style="font-size: 10px;"></i> New Task Updates</span>
+        </div>
+      </div>
+      
+      <!-- Arrow/Status -->
+      <div style="position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.25); backdrop-filter: blur(10px); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0;" id="notificationArrow">
+        <i class="fas fa-arrow-right"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- PWA Install Button -->
+  <div id="pwaInstallBanner" style="max-width: 500px; margin: 0 auto 18px; padding: 0 15px; display: none;">
+    <div style="background: linear-gradient(135deg, #10b981, #059669); backdrop-filter: blur(20px); border-radius: 18px; padding: 15px; box-shadow: 0 8px 25px rgba(16,185,129,0.3); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 12px; position: relative; overflow: hidden; transition: all 0.3s ease; cursor: pointer;" onclick="installPWA()">
+      
+      <!-- Gradient Overlay -->
+      <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05)); z-index: 0;"></div>
+      
+      <!-- App Icon -->
+      <div style="position: relative; z-index: 1; width: 45px; height: 45px; border-radius: 12px; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; color: white; font-size: 22px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); flex-shrink: 0; backdrop-filter: blur(10px);">
+        <i class="fas fa-mobile-alt"></i>
+      </div>
+      
+      <!-- Content -->
+      <div style="position: relative; z-index: 1; flex: 1; min-width: 0;">
+        <div style="font-size: 14px; font-weight: 800; color: white; margin-bottom: 3px;">Install CashByKing App</div>
+        <div style="font-size: 11px; color: rgba(255,255,255,0.9); display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span><i class="fas fa-bolt" style="font-size: 10px;"></i> Fast Access</span>
+          <span style="opacity: 0.7;">•</span>
+          <span><i class="fas fa-bell" style="font-size: 10px;"></i> Push Notifications</span>
+        </div>
+      </div>
+      
+      <!-- Arrow -->
+      <div style="position: relative; z-index: 1; width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.25); display: flex; align-items: center; justify-content: center; color: white; font-size: 14px; flex-shrink: 0; backdrop-filter: blur(10px);">
+        <i class="fas fa-download"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Available Tasks Section -->
+  <div style="max-width: 1000px; margin: 0 auto; padding: 0 15px 30px;">
+    <h2 style="font-size: 18px; font-weight: 800; color: var(--text-color); margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+      <i class="fas fa-tasks" style="color: var(--accent-color); font-size: 16px;"></i> Available Tasks
+    </h2>
+    <div id="tasksContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
+      <div style="grid-column: 1/-1; text-align: center; padding: 30px; color: var(--icon-color);">
+        <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i>
+        <p style="font-size: 13px;">Loading tasks...</p>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- WhatsApp Support Button -->
+  <a href="https://wa.me/919104037184" target="_blank" class="whatsapp-btn">
+    <i class="fab fa-whatsapp"></i>
+  </a>
+
+  <!-- Professional Footer -->
+  <footer class="professional-footer">
+    <div class="footer-content">
+      <div class="footer-section">
+        <h3><i class="fas fa-dollar-sign"></i> CashByKing</h3>
+        <p>India's most trusted earning platform. Complete tasks, earn rewards, and withdraw directly to your UPI account.</p>
+        <div class="social-links">
+          <a href="https://t.me/CashByKing" target="_blank"><i class="fab fa-telegram"></i></a>
+          <a href="https://wa.me/919104037184" target="_blank"><i class="fab fa-whatsapp"></i></a>
+          <a href="#"><i class="fab fa-instagram"></i></a>
+        </div>
+      </div>
+      <div class="footer-section">
+        <h3><i class="fas fa-link"></i> Quick Links</h3>
+        <a href="dashboard.html"><i class="fas fa-th-large"></i> Dashboard</a>
+        <a href="wallet.html"><i class="fas fa-wallet"></i> Wallet</a>
+        <a href="transactions.html"><i class="fas fa-history"></i> Transactions</a>
+        <a href="checkin.html"><i class="fas fa-calendar-check"></i> Daily Check-in</a>
+      </div>
+      <div class="footer-section">
+        <h3><i class="fas fa-address-card"></i> Contact Us</h3>
+        <a href="https://wa.me/919104037184"><i class="fab fa-whatsapp"></i> +91 9104037184</a>
+        <a href="mailto:support@cashbyking.com"><i class="fas fa-envelope"></i> support@cashbyking.com</a>
+        <a href="https://t.me/CashByKing"><i class="fab fa-telegram"></i> @CashByKing</a>
+      </div>
+      <div class="footer-section">
+        <h3><i class="fas fa-wallet"></i> Payment Info</h3>
+        <p><i class="fas fa-money-bill-wave"></i> UPI: reelsmarketesdevils@yesg</p>
+        <p><i class="fas fa-clock"></i> 24/7 Support Available</p>
+        <p><i class="fas fa-shield-alt"></i> 100% Secure Payments</p>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>&copy; 2025 CashByKing. All rights reserved. Made with <i class="fas fa-heart" style="color: #ef4444;"></i> in India</p>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script type="module" src="js/pages/dashboard.js"></script>
+
+</body>
+</html>

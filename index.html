@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sign Up - CashByKing</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    :root {
+      --bg-color: #f8fafc;
+      --card-bg: rgba(255,255,255,0.95);
+      --text-color: #1e293b;
+      --accent-color: #6366f1;
+      --accent-gradient: linear-gradient(135deg,#6366f1,#8b5cf6);
+      --border-color: rgba(0,0,0,0.08);
+      --shadow: 0 8px 30px rgba(0,0,0,0.08);
+      --footer-bg: rgba(30,41,59,0.98);
+      --footer-text: #f1f5f9;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #0f172a;
+      --card-bg: rgba(30,41,59,0.95);
+      --text-color: #f1f5f9;
+      --accent-color: #818cf8;
+      --accent-gradient: linear-gradient(135deg,#818cf8,#a78bfa);
+      --border-color: rgba(255,255,255,0.1);
+      --shadow: 0 8px 30px rgba(0,0,0,0.3);
+      --footer-bg: rgba(15,23,42,0.98);
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+    }
+
+    body {
+      background: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+      background-image: radial-gradient(circle at 20% 50%, rgba(99,102,241,0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(139,92,246,0.15) 0%, transparent 50%);
+    }
+
+    .main-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      width: 100%;
+      min-height: 100vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .signup-container {
+      width: 100%;
+      max-width: 380px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      border-radius: 20px;
+      padding: 28px 24px;
+      box-shadow: var(--shadow), 0 0 0 1px var(--border-color);
+      border: 1px solid var(--border-color);
+      animation: slideUp 0.6s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .logo-section {
+      text-align: center;
+      margin-bottom: 22px;
+    }
+
+    .logo {
+      width: 60px;
+      height: 60px;
+      background: var(--accent-gradient);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 28px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 20px rgba(99,102,241,0.35);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    h1 {
+      font-size: 23px;
+      font-weight: 800;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      margin-bottom: 6px;
+    }
+
+    .subtitle {
+      color: var(--text-color);
+      opacity: 0.65;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--text-color);
+    }
+
+    label i {
+      margin-right: 8px;
+      opacity: 0.7;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1.5px solid var(--border-color);
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-size: 13px;
+      transition: all 0.3s ease;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 4px rgba(99,102,241,0.1);
+      transform: translateY(-1px);
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 15px;
+      border-radius: 12px;
+      border: none;
+      background: var(--accent-gradient);
+      color: white;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 12px;
+      box-shadow: 0 6px 18px rgba(99,102,241,0.3);
+    }
+
+    .submit-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 28px rgba(99,102,241,0.4);
+    }
+
+    .submit-btn:active {
+      transform: translateY(-1px);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 25px;
+      right: 25px;
+      width: 55px;
+      height: 55px;
+      border-radius: 50%;
+      background: var(--card-bg);
+      border: 2px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 22px;
+      color: var(--text-color);
+      box-shadow: var(--shadow);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      backdrop-filter: blur(10px);
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1) rotate(15deg);
+    }
+
+
+
+    .whatsapp-float {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      width: 65px;
+      height: 65px;
+      background: linear-gradient(135deg, #25d366, #128c7e);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 32px;
+      box-shadow: 0 8px 25px rgba(37,211,102,0.4);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      z-index: 1000;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    .whatsapp-float:hover {
+      transform: scale(1.15);
+      box-shadow: 0 12px 35px rgba(37,211,102,0.6);
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        height: 100dvh; /* Dynamic viewport height for mobile */
+      }
+
+      .signup-container {
+        padding: 30px 20px;
+        border-radius: 20px;
+        margin: 10px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .logo {
+        width: 75px;
+        height: 75px;
+        font-size: 35px;
+      }
+
+      input {
+        padding: 14px 16px;
+        font-size: 16px; /* Prevents iOS zoom on focus */
+      }
+
+      .submit-btn {
+        padding: 16px;
+        font-size: 16px;
+      }
+
+      .whatsapp-float {
+        width: 55px;
+        height: 55px;
+        font-size: 26px;
+        bottom: 20px;
+        right: 20px;
+      }
+
+      .theme-toggle {
+        width: 50px;
+        height: 50px;
+        top: 20px;
+        right: 20px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .signup-container {
+        padding: 25px 18px;
+        margin: 5px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      .subtitle {
+        font-size: 14px;
+      }
+
+      .form-group {
+        margin-bottom: 18px;
+      }
+
+      label {
+        font-size: 13px;
+      }
+    }
+
+    /* Prevent zoom on iOS */
+    @supports (-webkit-touch-callout: none) {
+      input, select, textarea {
+        font-size: 16px !important;
+      }
+    }
+  </style>
+</head>
+<body data-theme="light" style="visibility: hidden;">
+  <script>
+    // Load theme immediately to prevent flash
+    const savedTheme = localStorage.getItem('cashbyking_theme') || 'light';
+    document.body.setAttribute('data-theme', savedTheme);
+  </script>
+  <div class="theme-toggle" id="themeToggle">
+    <i class="fas fa-moon"></i>
+  </div>
+
+  <div class="whatsapp-float" onclick="window.open('https://wa.me/919104037184', '_blank')">
+    <i class="fab fa-whatsapp"></i>
+  </div>
+
+  <div class="main-content">
+    <div class="signup-container">
+      <div class="logo-section">
+        <div class="logo">$</div>
+        <h1>Join CashByKing</h1>
+        <p class="subtitle">Create your account and start earning today</p>
+      </div>
+
+      <form id="signupForm">
+        <div class="form-group">
+          <label for="name"><i class="fas fa-user"></i> Full Name</label>
+          <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+        </div>
+
+        <div class="form-group">
+          <label for="email"><i class="fas fa-envelope"></i> Email Address</label>
+          <input type="email" id="email" name="email" placeholder="your@email.com" required>
+        </div>
+
+        <div class="form-group">
+          <label for="phone"><i class="fas fa-phone"></i> Phone Number</label>
+          <div style="display: flex; gap: 10px;">
+            <select id="countryCode" style="width: 120px; flex-shrink: 0;">
+              <option value="+91">🇮🇳 +91</option>
+              <option value="+92">🇵🇰 +92</option>
+              <option value="other">🌍 Other</option>
+            </select>
+            <input type="tel" id="phone" name="phone" placeholder="9876543210" required style="flex: 1;">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password"><i class="fas fa-lock"></i> Password</label>
+          <input type="password" id="password" name="password" placeholder="Create a strong password" required minlength="6">
+        </div>
+
+        <div class="form-group">
+          <label for="inviteCode"><i class="fas fa-gift"></i> Invite Code (Optional)</label>
+          <input type="text" id="inviteCode" name="inviteCode" placeholder="Enter invite code if you have one">
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <i class="fas fa-user-plus"></i> Create Account
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="js/pages/signup.js"></script>
+</body>
+</html>
