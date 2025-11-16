@@ -1,3 +1,4 @@
+
 // Task Detail Page Logic
 import { auth } from '../shared/firebase-config.js';
 import { getData, pushData, updateData, getServerTimestamp, runDbTransaction, setData } from '../shared/db.js';
@@ -86,22 +87,33 @@ async function handleSignup(event) {
 
 // Load task details
 async function loadTaskDetails() {
-  currentTask = await getData(`TASKS/${taskId}`);
+  try {
+    showLoading();
+    currentTask = await getData(`TASKS/${taskId}`);
 
-  if (!currentTask) {
-    showToast('Task not found', 'error');
-    redirectTo('dashboard.html');
-    return;
+    if (!currentTask) {
+      hideLoading();
+      showToast('Task not found', 'error');
+      setTimeout(() => redirectTo('dashboard.html'), 1500);
+      return;
+    }
+
+    if (currentTask.status !== 'active') {
+      hideLoading();
+      showToast('This task is no longer active', 'warning');
+      setTimeout(() => redirectTo('dashboard.html'), 1500);
+      return;
+    }
+
+    displayTaskDetails();
+    await checkTaskStatus();
+    hideLoading();
+  } catch (error) {
+    console.error('Error loading task:', error);
+    hideLoading();
+    showToast('Failed to load task details', 'error');
+    setTimeout(() => redirectTo('dashboard.html'), 1500);
   }
-
-  if (currentTask.status !== 'active') {
-    showToast('This task is no longer active', 'warning');
-    redirectTo('dashboard.html');
-    return;
-  }
-
-  displayTaskDetails();
-  await checkTaskStatus();
 }
 
 // Display task details
@@ -167,29 +179,34 @@ function displayTaskDetails() {
 
 // Check task status for current user
 async function checkTaskStatus() {
-  const completedTasks = currentTask.completedBy || [];
+  try {
+    const completedTasks = currentTask.completedBy || [];
 
-  // Check if already completed
-  if (completedTasks.includes(currentUser.uid)) {
-    showCompletedStatus();
-    return;
-  }
-
-  // Check if pending
-  const allPendingTasks = await getData('PENDING_TASKS');
-  if (allPendingTasks) {
-    const userPending = Object.entries(allPendingTasks).find(
-      ([_, submission]) => submission.userId === currentUser.uid && submission.taskId === taskId && submission.status === 'pending'
-    );
-
-    if (userPending) {
-      showPendingStatus();
+    // Check if already completed
+    if (completedTasks.includes(currentUser.uid)) {
+      showCompletedStatus();
       return;
     }
-  }
 
-  // Task available
-  showAvailableStatus();
+    // Check if pending
+    const allPendingTasks = await getData('PENDING_TASKS');
+    if (allPendingTasks) {
+      const userPending = Object.entries(allPendingTasks).find(
+        ([_, submission]) => submission.userId === currentUser.uid && submission.taskId === taskId && submission.status === 'pending'
+      );
+
+      if (userPending) {
+        showPendingStatus();
+        return;
+      }
+    }
+
+    // Task available
+    showAvailableStatus();
+  } catch (error) {
+    console.error('Error checking task status:', error);
+    showAvailableStatus();
+  }
 }
 
 // Show completed status
@@ -296,17 +313,18 @@ async function handleTaskSubmission() {
       submittedAt: getServerTimestamp()
     });
 
-    // Update user's task history
+    // Update user's pending task count only
     await runDbTransaction(`USERS/${currentUser.uid}/taskHistory/pending`, (current) => (current || 0) + 1);
-    await runDbTransaction(`USERS/${currentUser.uid}/taskHistory/completed`, (current) => (current || 0) + 1);
 
-    // Check if this is user's first completed task and give referrer bonus
+    // Check if this is user's first task submission and give referrer bonus
     const userData = await getData(`USERS/${currentUser.uid}`);
+    const pendingTasks = userData?.taskHistory?.pending || 0;
     const completedTasks = userData?.taskHistory?.completed || 0;
+    const totalTasks = pendingTasks + completedTasks;
     const referrerId = userData?.personalInfo?.referrerId;
     const hasReceivedFirstTaskBonus = userData?.personalInfo?.hasReceivedFirstTaskBonus;
 
-    if (completedTasks === 1 && referrerId && !hasReceivedFirstTaskBonus) {
+    if (totalTasks === 1 && referrerId && !hasReceivedFirstTaskBonus) {
       // Give ₹10 first task completion bonus to referrer (only once)
       await updateBalance(referrerId, 10, 'Referral first task completion bonus');
       await runDbTransaction(`USERS/${referrerId}/referrals/earnings`, (current) => (current || 0) + 10);
