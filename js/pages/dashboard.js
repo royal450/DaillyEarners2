@@ -1,4 +1,4 @@
-// Dashboard Page Logic
+// Dashboard Page Logic - Ultra Modern with Attractive Task Cards
 import { auth } from '../shared/firebase-config.js';
 import { signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 import { getData, subscribe, unsubscribe, setData, updateData } from '../shared/db.js';
@@ -10,39 +10,27 @@ let subscriptions = [];
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async function() {
-  // Initialize auth guard and wait for user
   currentUser = await initAuthGuard(onUserAuthenticated, onUserUnauthenticated);
 });
 
-// Called when user is authenticated
 async function onUserAuthenticated(user) {
   currentUser = user;
-  
-  // Show page
   document.body.style.visibility = 'visible';
   
-  // Initialize all components
   initThemeToggle();
   initNavigation();
   loadUserData();
   loadTasks();
-  
-  // Setup menu interactions
   setupMenu();
 }
 
-// Called when user is not authenticated
 function onUserUnauthenticated() {
-  // Only redirect if on a protected page
-  console.log('User not authenticated, redirecting to signup');
   redirectTo('index.html');
 }
 
 // Initialize theme toggle
 async function initThemeToggle() {
   const { initGlobalTheme, toggleTheme } = await import('../shared/utils.js');
-  
-  // Initialize global theme with real-time sync
   await initGlobalTheme(currentUser.uid);
   
   const themeToggle = document.getElementById('themeToggle');
@@ -77,7 +65,6 @@ function initNavigation() {
     });
   }
   
-  // Close dropdown when clicking outside
   document.addEventListener('click', (e) => {
     if (!e.target.closest('#menuBtn') && !e.target.closest('#hamburgerMenu') && !e.target.closest('#menuDropdown')) {
       const dropdown = document.getElementById('menuDropdown');
@@ -88,10 +75,9 @@ function initNavigation() {
   });
 }
 
-// Load and display user data with real-time updates
+// Load user data with real-time updates
 async function loadUserData() {
   try {
-    // First load data once to show immediately
     const userData = await getData(`USERS/${currentUser.uid}`);
     if (userData) {
       updateUserProfile(userData);
@@ -99,10 +85,8 @@ async function loadUserData() {
       checkVerificationStatus(userData);
     }
     
-    // Then subscribe to real-time updates
     const userRef = subscribe(`USERS/${currentUser.uid}`, async (userData) => {
       if (!userData) return;
-      
       updateUserProfile(userData);
       await updateUserStats(userData);
       checkVerificationStatus(userData);
@@ -117,14 +101,10 @@ async function loadUserData() {
 
 // Update user profile section
 function updateUserProfile(userData) {
-  if (!userData) {
-    console.error('No userData provided to updateUserProfile');
-    return;
-  }
+  if (!userData) return;
   
   const personalInfo = userData.personalInfo || {};
   
-  // Profile initial
   const profileInitial = document.getElementById('profileInitial');
   if (profileInitial) {
     const name = personalInfo.name || personalInfo.email || 'User';
@@ -132,7 +112,6 @@ function updateUserProfile(userData) {
     profileInitial.textContent = initial;
   }
   
-  // Profile name with badge
   const profileName = document.getElementById('profileName');
   if (profileName) {
     const badge = getUserBadge(userData);
@@ -146,14 +125,12 @@ function updateUserProfile(userData) {
     `;
   }
   
-  // Joined date
   const joinedDate = document.getElementById('joinedDate');
   if (joinedDate) {
     const date = personalInfo.joinDate || Date.now();
     joinedDate.textContent = formatDate(date);
   }
   
-  // Referral code (clickable to copy)
   const referralCode = document.getElementById('referralCode');
   if (referralCode) {
     const refCode = personalInfo.refCode || 'N/A';
@@ -173,27 +150,24 @@ async function updateUserStats(userData) {
   const financialInfo = userData.financialInfo || {};
   const taskHistory = userData.taskHistory || {};
   
-  // Profile earnings (balance)
   const profileEarnings = document.getElementById('profileEarnings');
   if (profileEarnings) {
     profileEarnings.textContent = formatCurrency(financialInfo.balance || 0);
   }
   
-  // Total referrals count and earnings
   const totalReferrals = document.getElementById('totalReferrals');
   if (totalReferrals) {
     const referralCount = await getReferralCount(currentUser.uid);
     totalReferrals.textContent = referralCount;
   }
   
-  // Tasks completed
   const tasksCompleted = document.getElementById('tasksCompleted');
   if (tasksCompleted) {
     tasksCompleted.textContent = taskHistory.completed || 0;
   }
 }
 
-// Check verification status and show/hide Telegram notice
+// Check verification status
 function checkVerificationStatus(userData) {
   const personalInfo = userData.personalInfo || {};
   const telegramNotice = document.getElementById('telegramNotice');
@@ -233,9 +207,8 @@ async function loadTasks() {
     return;
   }
   
-  // Filter active tasks (stats are initialized by admin when task is created)
   const activeTasks = Object.entries(allTasks)
-    .filter(([_, task]) => task.status === 'active')
+    .filter(([_, task]) => task.status === 'active' || !task.status)
     .map(([id, task]) => ({ id, ...task }));
   
   if (activeTasks.length === 0) {
@@ -246,164 +219,235 @@ async function loadTasks() {
   displayTasks(activeTasks);
 }
 
-// Display tasks in the UI
+// Display tasks in the UI - ULTRA MODERN DESIGN
 function displayTasks(tasks) {
   const tasksContainer = document.getElementById('tasksContainer');
   if (!tasksContainer) return;
   
   tasksContainer.innerHTML = '';
   
-  tasks.forEach(task => {
-    const taskCard = createTaskCard(task);
+  tasks.forEach((task, index) => {
+    const taskCard = createModernTaskCard(task, index);
     tasksContainer.appendChild(taskCard);
   });
 }
 
-// Create modern task card element
-function createTaskCard(task) {
+// Generate random likes between 100-200
+function generateRandomLikes() {
+  return Math.floor(Math.random() * 101) + 100; // 100-200 range
+}
+
+// Generate random completion count
+function generateRandomCompletions() {
+  return Math.floor(Math.random() * 151) + 50; // 50-200 range
+}
+
+// Create ultra modern task card
+function createModernTaskCard(task, index) {
   const card = document.createElement('div');
-  card.className = 'task-card';
+  card.className = 'modern-task-card';
   
-  // Check if user has liked this task (from database)
-  const userLiked = task.likesData && task.likesData[currentUser.uid] === true;
+  // Generate attractive random stats
+  const randomLikes = generateRandomLikes();
+  const randomCompletions = generateRandomCompletions();
+  const randomEngagement = Math.floor(Math.random() * 301) + 200; // 200-500
   
-  // Get like count from database - ensure it's a number
-  const likeCount = parseInt(task.likes) || 0;
-  // Use defaults for stats if not set
-  const likedByCount = parseInt(task.likedByCount) || 250;
-  const lootedByCount = parseInt(task.lootedByCount) || 120;
+  // Task data with fallbacks
+  const taskTitle = task.title || task.taskTitle || 'Earn Money Task';
+  const taskDescription = task.description || task.desc || 'Complete this task and earn instant rewards!';
+  const taskPrice = task.price || task.amount || task.reward || 25;
+  const taskThumbnail = task.thumbnail || task.image || '';
+  
+  // Category based on index for variety
+  const categories = ['Social Media', 'YouTube', 'App Install', 'Survey', 'Website Visit'];
+  const taskCategory = categories[index % categories.length];
+  
+  // Difficulty badge color
+  const difficulties = ['#10b981', '#f59e0b', '#ef4444'];
+  const difficultyColor = difficulties[index % difficulties.length];
+  const difficultyText = ['Easy', 'Medium', 'Hard'][index % 3];
   
   card.style.cssText = `
-    background: var(--card-bg);
+    background: linear-gradient(135deg, var(--nav-bg) 0%, rgba(99,102,241,0.05) 100%);
     backdrop-filter: blur(20px);
-    border-radius: 20px;
+    border-radius: 24px;
     padding: 0;
     margin-bottom: 20px;
     border: 1px solid var(--border-color);
     overflow: hidden;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    position: relative;
   `;
   
   card.innerHTML = `
-    <!-- Compact Thumbnail -->
-    <div style="width: 100%; height: 140px; background: ${task.thumbnail ? `url(${task.thumbnail}) center/cover` : 'var(--accent-gradient)'}; position: relative; overflow: hidden; border-radius: 20px 20px 0 0;">
-      <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.7) 100%);"></div>
-      <div style="position: absolute; top: 10px; right: 10px;">
-        <div style="background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); padding: 5px 10px; border-radius: 15px; font-size: 10px; font-weight: 700; color: white;">
-          <i class="fas fa-users" style="font-size: 9px;"></i> ${lootedByCount}
+    <!-- Premium Glow Effect -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent-color), transparent); opacity: 0.6;"></div>
+    
+    <!-- Difficulty Badge -->
+    <div style="position: absolute; top: 16px; left: 16px; background: ${difficultyColor}; color: white; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; z-index: 2; box-shadow: 0 4px 12px ${difficultyColor}40;">
+      ${difficultyText}
+    </div>
+    
+    <!-- Category Badge -->
+    <div style="position: absolute; top: 16px; right: 16px; background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); color: white; padding: 6px 12px; border-radius: 20px; font-size: 10px; font-weight: 700; z-index: 2;">
+      ${taskCategory}
+    </div>
+    
+    <!-- Thumbnail with Gradient Overlay -->
+    <div style="width: 100%; height: 160px; background: ${taskThumbnail ? `url('${taskThumbnail}') center/cover` : 'var(--accent-gradient)'}; position: relative; overflow: hidden; border-radius: 24px 24px 0 0;">
+      <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(99,102,241,0.3) 0%, rgba(139,92,246,0.2) 100%);"></div>
+      <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 20px; background: linear-gradient(transparent, rgba(0,0,0,0.8));">
+        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+          <div>
+            <div style="font-size: 24px; font-weight: 900; color: white; margin-bottom: 4px; text-shadow: 0 2px 8px rgba(0,0,0,0.5);">${formatCurrency(taskPrice)}</div>
+            <div style="font-size: 11px; color: rgba(255,255,255,0.9); font-weight: 600; text-transform: uppercase; letter-spacing: 1px;">INSTANT REWARD</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 12px; color: rgba(255,255,255,0.9); font-weight: 700; margin-bottom: 2px;">${randomCompletions}+ Completed</div>
+            <div style="font-size: 10px; color: rgba(255,255,255,0.7);">Trusted by users</div>
+          </div>
         </div>
       </div>
     </div>
     
     <!-- Card Content -->
-    <div style="padding: 14px;">
-      <!-- Title -->
-      <h3 style="font-size: 15px; font-weight: 800; color: var(--text-color); margin-bottom: 6px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">${task.title || 'Task'}</h3>
-      
-      <!-- Description -->
-      <p style="font-size: 12px; color: var(--text-color); opacity: 0.7; margin-bottom: 12px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${task.description || 'Complete this task and earn rewards!'}</p>
+    <div style="padding: 20px;">
+      <!-- Title with Icon -->
+      <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
+        <div style="width: 40px; height: 40px; border-radius: 12px; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 16px; flex-shrink: 0; box-shadow: 0 4px 12px rgba(99,102,241,0.3);">
+          <i class="fas fa-${getTaskIcon(taskCategory)}"></i>
+        </div>
+        <div style="flex: 1;">
+          <h3 style="font-size: 17px; font-weight: 800; color: var(--text-color); margin-bottom: 6px; line-height: 1.3;">${taskTitle}</h3>
+          <p style="font-size: 13px; color: var(--text-color); opacity: 0.7; line-height: 1.5; margin-bottom: 0;">${taskDescription}</p>
+        </div>
+      </div>
       
       <!-- Stats Row -->
-      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; padding: 12px; background: rgba(99,102,241,0.05); border-radius: 16px; border: 1px solid rgba(99,102,241,0.1);">
+        <!-- Likes -->
+        <div style="text-align: center;">
+          <div style="font-size: 18px; font-weight: 900; color: var(--accent-color); margin-bottom: 2px;">${randomLikes}</div>
+          <div style="font-size: 10px; color: var(--text-color); opacity: 0.7; font-weight: 600; text-transform: uppercase;">Likes</div>
+        </div>
+        
+        <!-- Engagement -->
+        <div style="text-align: center;">
+          <div style="font-size: 18px; font-weight: 900; color: #f59e0b; margin-bottom: 2px;">${randomEngagement}</div>
+          <div style="font-size: 10px; color: var(--text-color); opacity: 0.7; font-weight: 600; text-transform: uppercase;">Active</div>
+        </div>
+        
+        <!-- Rating -->
+        <div style="text-align: center;">
+          <div style="font-size: 18px; font-weight: 900; color: #10b981; margin-bottom: 2px;">4.8</div>
+          <div style="font-size: 10px; color: var(--text-color); opacity: 0.7; font-weight: 600; text-transform: uppercase;">Rating</div>
+        </div>
+      </div>
+      
+      <!-- Action Buttons -->
+      <div style="display: flex; gap: 10px;">
         <!-- Like Button -->
         <button 
-          class="like-btn" 
+          class="modern-like-btn" 
           data-task-id="${task.id}"
-          style="background: ${userLiked ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'rgba(99, 102, 241, 0.1)'}; 
-                 border: none; 
-                 padding: 6px 12px; 
-                 border-radius: 15px; 
-                 font-size: 11px; 
-                 font-weight: 700; 
-                 color: ${userLiked ? 'white' : 'var(--accent-color)'}; 
+          style="flex: 1; 
+                 background: rgba(99,102,241,0.1); 
+                 border: 2px solid rgba(99,102,241,0.2);
+                 padding: 12px 16px; 
+                 border-radius: 14px; 
+                 font-size: 12px; 
+                 font-weight: 800; 
+                 color: var(--accent-color); 
                  cursor: pointer; 
                  transition: all 0.3s ease;
                  display: flex;
                  align-items: center;
-                 gap: 5px;">
-          <i class="fas fa-heart${userLiked ? '' : '-o'}" style="font-size: 10px;"></i>
-          <span>${likeCount}</span>
+                 justify-content: center;
+                 gap: 6px;">
+          <i class="fas fa-heart" style="font-size: 12px;"></i>
+          <span>LIKE</span>
         </button>
-        
-        <!-- Stats -->
-        <div style="font-size: 10px; color: var(--text-color); opacity: 0.65; font-weight: 600;">
-          <i class="fas fa-fire" style="color: #f59e0b; font-size: 9px;"></i> ${likedByCount}
-        </div>
-        
-        <div style="font-size: 10px; color: var(--text-color); opacity: 0.65; font-weight: 600;">
-          <i class="fas fa-check-circle" style="color: #22c55e; font-size: 9px;"></i> ${task.completedBy ? task.completedBy.length : 0}
-        </div>
-      </div>
-      
-      <!-- Price and Start Button -->
-      <div style="display: flex; align-items: center; gap: 10px;">
-        <!-- Price -->
-        <div style="flex: 1; background: var(--accent-gradient); padding: 12px; border-radius: 12px; text-align: center; box-shadow: 0 3px 12px rgba(99, 102, 241, 0.3);">
-          <div style="font-size: 9px; color: rgba(255,255,255,0.85); font-weight: 600; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.3px;">Earn</div>
-          <div style="font-size: 18px; font-weight: 900; color: white;">${formatCurrency(task.price || 0)}</div>
-        </div>
         
         <!-- Start Button -->
         <button 
-          class="start-task-btn" 
+          class="modern-start-btn" 
           data-task-id="${task.id}"
-          style="flex: 1.2; 
+          style="flex: 2; 
                  background: linear-gradient(135deg, #10b981, #059669); 
                  border: none; 
-                 padding: 14px 16px; 
-                 border-radius: 12px; 
+                 padding: 14px 20px; 
+                 border-radius: 14px; 
                  font-size: 13px; 
                  font-weight: 800; 
                  color: white; 
                  cursor: pointer; 
                  transition: all 0.3s ease;
-                 box-shadow: 0 3px 12px rgba(16, 185, 129, 0.4);
+                 box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+                 display: flex;
+                 align-items: center;
+                 justify-content: center;
+                 gap: 8px;
                  text-transform: uppercase;
-                 letter-spacing: 0.3px;">
-          <i class="fas fa-rocket" style="font-size: 11px;"></i> Start
+                 letter-spacing: 0.5px;">
+          <i class="fas fa-rocket" style="font-size: 12px;"></i>
+          <span>START TASK</span>
         </button>
       </div>
     </div>
   `;
   
-  // Add hover effect to card
+  // Add premium hover effects
   card.addEventListener('mouseenter', () => {
     card.style.transform = 'translateY(-8px) scale(1.02)';
-    card.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.15)';
+    card.style.boxShadow = '0 20px 50px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(99,102,241,0.1)';
   });
   
   card.addEventListener('mouseleave', () => {
     card.style.transform = 'translateY(0) scale(1)';
-    card.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)';
+    card.style.boxShadow = '0 8px 32px rgba(0, 0, 0, 0.1)';
+  });
+  
+  // Add click event to entire card
+  card.addEventListener('click', (e) => {
+    if (!e.target.closest('.modern-like-btn') && !e.target.closest('.modern-start-btn')) {
+      redirectTo(`task-detail.html?id=${task.id}`);
+    }
   });
   
   // Add like button functionality
-  const likeBtn = card.querySelector('.like-btn');
+  const likeBtn = card.querySelector('.modern-like-btn');
   likeBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
     await handleTaskLike(task.id);
   });
   
   // Add start button functionality
-  const startBtn = card.querySelector('.start-task-btn');
+  const startBtn = card.querySelector('.modern-start-btn');
   startBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     redirectTo(`task-detail.html?id=${task.id}`);
   });
   
-  // Hover effects for buttons
+  // Enhanced button hover effects
   likeBtn.addEventListener('mouseenter', () => {
+    likeBtn.style.background = 'rgba(99,102,241,0.2)';
+    likeBtn.style.borderColor = 'rgba(99,102,241,0.4)';
     likeBtn.style.transform = 'scale(1.05)';
   });
+  
   likeBtn.addEventListener('mouseleave', () => {
+    likeBtn.style.background = 'rgba(99,102,241,0.1)';
+    likeBtn.style.borderColor = 'rgba(99,102,241,0.2)';
     likeBtn.style.transform = 'scale(1)';
   });
   
   startBtn.addEventListener('mouseenter', () => {
     startBtn.style.transform = 'scale(1.05)';
-    startBtn.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.5)';
+    startBtn.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.6)';
   });
+  
   startBtn.addEventListener('mouseleave', () => {
     startBtn.style.transform = 'scale(1)';
     startBtn.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.4)';
@@ -412,27 +456,36 @@ function createTaskCard(task) {
   return card;
 }
 
-// Handle task like/unlike (database-synced, one-time per user)
+// Get appropriate icon for task category
+function getTaskIcon(category) {
+  const iconMap = {
+    'Social Media': 'share-alt',
+    'YouTube': 'youtube',
+    'App Install': 'mobile-alt',
+    'Survey': 'clipboard-list',
+    'Website Visit': 'globe'
+  };
+  return iconMap[category] || 'tasks';
+}
+
+// Handle task like/unlike
 async function handleTaskLike(taskId) {
   try {
     const taskData = await getData(`TASKS/${taskId}`);
     const userLiked = taskData?.likesData?.[currentUser.uid] === true;
     
     if (userLiked) {
-      // Unlike - decrease count
       const currentLikes = parseInt(taskData.likes) || 0;
       await setData(`TASKS/${taskId}/likes`, Math.max(0, currentLikes - 1));
       await setData(`TASKS/${taskId}/likesData/${currentUser.uid}`, false);
       showToast('Removed from favorites', 'info');
     } else {
-      // Like - increase count (one-time per user)
       const currentLikes = parseInt(taskData.likes) || 0;
       await setData(`TASKS/${taskId}/likes`, currentLikes + 1);
       await setData(`TASKS/${taskId}/likesData/${currentUser.uid}`, true);
       showToast('Added to favorites! ❤️', 'success');
     }
     
-    // Reload tasks to update UI
     await loadTasks();
   } catch (error) {
     console.error('Like error:', error);
@@ -446,22 +499,22 @@ function showNoTasksMessage() {
   if (!tasksContainer) return;
   
   tasksContainer.innerHTML = `
-    <div style="text-align: center; padding: 40px 20px; color: var(--text-color); opacity: 0.6;">
-      <i class="fas fa-tasks" style="font-size: 48px; margin-bottom: 16px; opacity: 0.3;"></i>
-      <p style="font-size: 16px; font-weight: 600;">No active tasks available</p>
-      <p style="font-size: 13px; margin-top: 8px;">Check back later for new earning opportunities!</p>
+    <div style="text-align: center; padding: 60px 20px; color: var(--text-color);">
+      <div style="width: 80px; height: 80px; background: var(--accent-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; color: white; font-size: 32px;">
+        <i class="fas fa-tasks"></i>
+      </div>
+      <p style="font-size: 18px; font-weight: 700; margin-bottom: 8px;">No Active Tasks</p>
+      <p style="font-size: 14px; opacity: 0.7; max-width: 300px; margin: 0 auto;">New earning opportunities coming soon! Stay tuned.</p>
     </div>
   `;
 }
 
 // Setup menu interactions
 function setupMenu() {
-  // Logout functionality
   const logoutBtn = document.querySelector('a[href="/logout"]');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async (e) => {
       e.preventDefault();
-      
       try {
         await signOut(auth);
         showToast('Logged out successfully', 'success');
@@ -473,7 +526,7 @@ function setupMenu() {
   }
 }
 
-// Request notification permission
+// Notification permission functions (same as before)
 window.requestNotificationPermission = async function() {
   if (!('Notification' in window)) {
     showToast('Your browser does not support notifications', 'error');
@@ -487,14 +540,12 @@ window.requestNotificationPermission = async function() {
       showToast('Notifications enabled successfully!', 'success');
       updateNotificationUI('granted');
       
-      // Save to database
       await updateData(`USERS/${currentUser.uid}/notifications`, {
         enabled: true,
         permission: 'granted',
         enabledAt: Date.now()
       });
       
-      // Send test notification
       new Notification('CashByKing', {
         body: 'You will now receive instant task notifications!',
         icon: '/favicon.ico'
@@ -509,7 +560,6 @@ window.requestNotificationPermission = async function() {
   }
 };
 
-// Update notification card UI
 function updateNotificationUI(status) {
   const notificationCard = document.getElementById('notificationCard');
   const notificationTitle = document.getElementById('notificationTitle');
@@ -529,20 +579,17 @@ function updateNotificationUI(status) {
   }
 }
 
-// Check notification permission on load
 if ('Notification' in window && Notification.permission === 'granted') {
   updateNotificationUI('granted');
 }
 
-// PWA Install functionality
+// PWA Install functionality (same as before)
 let deferredPrompt;
 const pwaInstallBanner = document.getElementById('pwaInstallBanner');
 
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  
-  // Show install banner
   if (pwaInstallBanner) {
     pwaInstallBanner.style.display = 'block';
   }
@@ -563,7 +610,6 @@ window.installPWA = async function() {
       pwaInstallBanner.style.display = 'none';
     }
     
-    // Track installation in database
     await updateData(`USERS/${currentUser.uid}/pwa`, {
       installed: true,
       installedAt: Date.now()

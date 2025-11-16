@@ -2,7 +2,7 @@
   "name": "CashByKing - Earning Platform",
   "short_name": "CashByKing",
   "description": "Complete earning-based platform with tasks, referrals, and daily rewards",
-  "start_url": "/dashboard",
+  "start_url": "/dashboard.html",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#6366f1",
