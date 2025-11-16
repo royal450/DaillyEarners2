@@ -39,20 +39,16 @@ document.addEventListener('DOMContentLoaded', async function() {
   if (!currentUser && referralCode) {
     document.getElementById('referralCodeInput').value = referralCode;
     document.getElementById('referralCodeInput').disabled = true;
-    document.getElementById('referralCodeField').style.display = 'block'; // Make referral code field visible
-    document.getElementById('referralBonusMessage').style.display = 'block'; // Show bonus message
-    document.getElementById('signupForm').style.display = 'block'; // Show signup form
-    document.getElementById('loginForm').style.display = 'none'; // Hide login form
-    document.getElementById('taskDetailContainer').style.display = 'none'; // Hide task details until logged in
-    document.getElementById('authContainer').style.display = 'block'; // Show auth container
+    document.getElementById('referralCodeField').style.display = 'block';
+    document.getElementById('referralBonusMessage').style.display = 'block';
+    document.getElementById('signupForm').style.display = 'block';
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('taskDetailContainer').style.display = 'none';
+    document.getElementById('authContainer').style.display = 'block';
 
-    // Set signup bonus message
     document.getElementById('signupBonusText').textContent = 'Yeah! You got 5rs instantly';
-
-    // Add event listener for signup form submission
     document.getElementById('signupForm').addEventListener('submit', handleSignup);
   } else if (!currentUser) {
-    // If not authenticated and no referral code, show login form
     document.getElementById('loginForm').style.display = 'block';
     document.getElementById('signupForm').style.display = 'none';
     document.getElementById('taskDetailContainer').style.display = 'none';
@@ -113,7 +109,7 @@ async function loadTaskDetails() {
 
     console.log('Fetching task:', taskId);
     currentTask = await getData(`TASKS/${taskId}`);
-    console.log('Task data:', currentTask);
+    console.log('Task data received:', currentTask);
 
     // Remove loading overlay
     if (loadingOverlay && loadingOverlay.parentNode) {
@@ -121,6 +117,7 @@ async function loadTaskDetails() {
     }
 
     if (!currentTask) {
+      console.error('Task not found in database');
       showToast('Task not found', 'error');
       setTimeout(() => redirectTo('dashboard.html'), 1500);
       return;
@@ -154,37 +151,37 @@ async function loadTaskDetails() {
 
 // Display task details
 function displayTaskDetails() {
-  // Hide any loading states
-  const loadingElements = document.querySelectorAll('.loading-text, .loading-placeholder');
-  loadingElements.forEach(el => {
-    el.style.display = 'none';
-  });
+  console.log('Displaying task details:', currentTask);
 
   // Show task reward (price)
   const taskRewardElement = document.getElementById('taskReward');
   if (taskRewardElement) {
-    taskRewardElement.textContent = formatCurrency(currentTask.price || 0);
-    taskRewardElement.style.display = 'block';
+    const taskPrice = currentTask.price || currentTask.reward || 0;
+    taskRewardElement.textContent = taskPrice;
+    console.log('Task price set to:', taskPrice);
   }
 
   // Show task title
   const taskTitleElement = document.getElementById('taskTitle');
   if (taskTitleElement) {
-    taskTitleElement.textContent = currentTask.title || 'Task';
-    taskTitleElement.style.display = 'block';
+    taskTitleElement.textContent = currentTask.title || currentTask.name || 'Task';
+    console.log('Task title set to:', currentTask.title);
   }
 
   // Show task description
   const taskDescElement = document.getElementById('taskDescription');
   if (taskDescElement) {
     taskDescElement.textContent = currentTask.description || 'Complete this task to earn rewards!';
-    taskDescElement.style.display = 'block';
+    console.log('Task description set');
   }
 
   // Display steps
   const stepsContainer = document.getElementById('stepsContainer');
   if (stepsContainer) {
+    console.log('Steps data:', currentTask.steps);
+    
     if (currentTask.steps && Array.isArray(currentTask.steps) && currentTask.steps.length > 0) {
+      console.log('Rendering custom steps:', currentTask.steps.length);
       stepsContainer.innerHTML = currentTask.steps.map((step, index) => `
         <div class="step-item">
           <div class="step-number">${index + 1}</div>
@@ -194,6 +191,7 @@ function displayTaskDetails() {
         </div>
       `).join('');
     } else {
+      console.log('No steps found, using default steps');
       stepsContainer.innerHTML = `
         <div class="step-item">
           <div class="step-number">1</div>
@@ -215,29 +213,32 @@ function displayTaskDetails() {
         </div>
       `;
     }
-    stepsContainer.style.display = 'block';
   }
 
   // Display instructions
   const instructionElement = document.getElementById('taskInstruction');
   if (instructionElement) {
+    console.log('Instructions data:', currentTask.instructions);
+    
     if (currentTask.instructions) {
       instructionElement.textContent = currentTask.instructions;
     } else {
       instructionElement.textContent = '⚠️ Complete all steps honestly. Fake submissions will be rejected and may result in account suspension.';
     }
-    instructionElement.style.display = 'block';
   }
 
   // Display timer warning if exists
   const timerWarning = document.getElementById('timerWarning');
   const timerSeconds = document.getElementById('timerSeconds');
   if (currentTask.timeLimit && timerWarning && timerSeconds) {
+    console.log('Setting time limit:', currentTask.timeLimit);
     timerWarning.style.display = 'flex';
     timerSeconds.textContent = currentTask.timeLimit;
   } else if (timerWarning) {
     timerWarning.style.display = 'none';
   }
+
+  console.log('Task details display completed');
 }
 
 // Check task status for current user
@@ -338,13 +339,14 @@ function setupTaskActions() {
 
 // Handle visit task - redirect to task URL
 function handleVisitTask() {
-  if (!currentTask.url) {
+  if (!currentTask.url && !currentTask.link) {
     showToast('Task URL not available', 'error');
     return;
   }
 
+  const taskUrl = currentTask.url || currentTask.link;
   // Open task URL in new tab
-  window.open(currentTask.url, '_blank');
+  window.open(taskUrl, '_blank');
   showToast('Complete the task and return to submit', 'info');
 }
 
@@ -371,7 +373,7 @@ async function handleTaskSubmission() {
       userId: currentUser.uid,
       taskId,
       taskTitle: currentTask.title,
-      taskPrice: currentTask.price,
+      taskPrice: currentTask.price || currentTask.reward || 0,
       status: 'pending',
       submittedAt: getServerTimestamp()
     });
