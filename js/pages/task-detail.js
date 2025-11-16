@@ -157,21 +157,17 @@ function displayTaskDetails() {
   // Show task reward (price)
   const taskRewardElement = document.getElementById('taskReward');
   if (taskRewardElement) {
-    const taskPrice = currentTask.price || currentTask.reward || 0;
+    const taskPrice = parseInt(currentTask.price) || parseInt(currentTask.reward) || 0;
     taskRewardElement.textContent = taskPrice.toString();
     console.log('Task price set to:', taskPrice);
-  } else {
-    console.error('taskReward element not found');
   }
 
   // Show task title
   const taskTitleElement = document.getElementById('taskTitle');
   if (taskTitleElement) {
-    const title = currentTask.title || currentTask.name || 'Unnamed Task';
+    const title = currentTask.title || currentTask.name || 'Task';
     taskTitleElement.textContent = title;
     console.log('Task title set to:', title);
-  } else {
-    console.error('taskTitle element not found');
   }
 
   // Show task description
@@ -180,30 +176,24 @@ function displayTaskDetails() {
     const description = currentTask.description || 'Complete this task to earn rewards!';
     taskDescElement.textContent = description;
     console.log('Task description set to:', description);
-  } else {
-    console.error('taskDescription element not found');
   }
 
   // Display steps - Check multiple possible fields
   const stepsContainer = document.getElementById('stepsContainer');
   if (stepsContainer) {
     console.log('Steps data from currentTask.steps:', currentTask.steps);
-    console.log('Steps data from currentTask.taskSteps:', currentTask.taskSteps);
+    
+    let steps = [];
     
     // Try to get steps from different possible fields
-    let steps = null;
-    if (currentTask.steps && Array.isArray(currentTask.steps) && currentTask.steps.length > 0) {
+    if (Array.isArray(currentTask.steps) && currentTask.steps.length > 0) {
       steps = currentTask.steps;
-    } else if (currentTask.taskSteps && Array.isArray(currentTask.taskSteps) && currentTask.taskSteps.length > 0) {
-      steps = currentTask.taskSteps;
     } else if (typeof currentTask.steps === 'string' && currentTask.steps.trim() !== '') {
-      // If steps is a string, split by newline
-      steps = currentTask.steps.split('\n').filter(s => s.trim() !== '');
-    } else if (typeof currentTask.taskSteps === 'string' && currentTask.taskSteps.trim() !== '') {
-      steps = currentTask.taskSteps.split('\n').filter(s => s.trim() !== '');
+      // If steps is a string, split by newline or comma
+      steps = currentTask.steps.split(/[\n,]/).map(s => s.trim()).filter(s => s !== '');
     }
     
-    if (steps && steps.length > 0) {
+    if (steps.length > 0) {
       console.log('Rendering custom steps:', steps.length, steps);
       stepsContainer.innerHTML = steps.map((step, index) => `
         <div class="step-item">
@@ -214,62 +204,55 @@ function displayTaskDetails() {
         </div>
       `).join('');
     } else {
-      console.log('No steps found in database, using default steps');
+      console.log('No custom steps, using default steps');
       stepsContainer.innerHTML = `
         <div class="step-item">
           <div class="step-number">1</div>
           <div class="step-content">
-            <div class="step-text">Click "Visit Task" button to open the task link</div>
+            <div class="step-text">Click "Visit Task" button नीचे दिए गए link को open करने के लिए</div>
           </div>
         </div>
         <div class="step-item">
           <div class="step-number">2</div>
           <div class="step-content">
-            <div class="step-text">Complete all the required actions on the website</div>
+            <div class="step-text">Task में दिए गए सभी actions को complete करें</div>
           </div>
         </div>
         <div class="step-item">
           <div class="step-number">3</div>
           <div class="step-content">
-            <div class="step-text">Return here and click "Submit Task" button for review</div>
+            <div class="step-text">वापस आकर "Submit Task" button पर click करें review के लिए</div>
           </div>
         </div>
       `;
     }
-  } else {
-    console.error('stepsContainer element not found');
   }
 
-  // Display instructions - Check multiple possible fields
+  // Display instructions
   const instructionElement = document.getElementById('taskInstruction');
   if (instructionElement) {
-    console.log('Instructions from currentTask.instructions:', currentTask.instructions);
-    console.log('Instructions from currentTask.taskInstructions:', currentTask.taskInstructions);
-    console.log('Instructions from currentTask.importantNote:', currentTask.importantNote);
-    
-    // Try to get instructions from different possible fields
-    let instructions = currentTask.instructions || currentTask.taskInstructions || currentTask.importantNote || null;
+    let instructions = currentTask.instructions || currentTask.importantNote || '';
     
     if (instructions && instructions.trim() !== '') {
       instructionElement.textContent = instructions;
       console.log('Instructions set to:', instructions);
     } else {
-      instructionElement.textContent = '⚠️ Complete all steps honestly. Fake submissions will be rejected and may result in account suspension.';
+      instructionElement.textContent = '⚠️ सभी steps को ईमानदारी से complete करें। Fake submissions reject कर दिए जाएंगे और account suspend हो सकता है।';
       console.log('Using default instructions');
     }
-  } else {
-    console.error('taskInstruction element not found');
   }
 
   // Display timer warning if exists
   const timerWarning = document.getElementById('timerWarning');
   const timerSeconds = document.getElementById('timerSeconds');
-  if (currentTask.timeLimit && timerWarning && timerSeconds) {
-    console.log('Setting time limit:', currentTask.timeLimit);
-    timerWarning.style.display = 'flex';
-    timerSeconds.textContent = currentTask.timeLimit;
-  } else if (timerWarning) {
-    timerWarning.style.display = 'none';
+  if (timerWarning && timerSeconds) {
+    if (currentTask.timeLimit) {
+      console.log('Setting time limit:', currentTask.timeLimit);
+      timerWarning.style.display = 'flex';
+      timerSeconds.textContent = currentTask.timeLimit;
+    } else {
+      timerWarning.style.display = 'none';
+    }
   }
 
   console.log('Task details display completed');

@@ -267,11 +267,11 @@ function createTaskCard(task) {
   // Check if user has liked this task (from database)
   const userLiked = task.likesData && task.likesData[currentUser.uid] === true;
   
-  // Get like count from database
-  const likeCount = task.likes || 0;
-  // Use random defaults for stats if not set
-  const likedByCount = task.likedByCount || Math.floor(Math.random() * 300) + 200;
-  const lootedByCount = task.lootedByCount || Math.floor(Math.random() * 150) + 100;
+  // Get like count from database - ensure it's a number
+  const likeCount = parseInt(task.likes) || 0;
+  // Use defaults for stats if not set
+  const likedByCount = parseInt(task.likedByCount) || 250;
+  const lootedByCount = parseInt(task.lootedByCount) || 120;
   
   card.style.cssText = `
     background: var(--card-bg);
@@ -415,20 +415,20 @@ function createTaskCard(task) {
 // Handle task like/unlike (database-synced, one-time per user)
 async function handleTaskLike(taskId) {
   try {
-    const { runDbTransaction, updateData } = await import('./shared/db.js');
-    
     const taskData = await getData(`TASKS/${taskId}`);
     const userLiked = taskData?.likesData?.[currentUser.uid] === true;
     
     if (userLiked) {
       // Unlike - decrease count
-      await runDbTransaction(`TASKS/${taskId}/likes`, (current) => Math.max(0, (current || 0) - 1));
-      await updateData(`TASKS/${taskId}/likesData/${currentUser.uid}`, false);
+      const currentLikes = parseInt(taskData.likes) || 0;
+      await setData(`TASKS/${taskId}/likes`, Math.max(0, currentLikes - 1));
+      await setData(`TASKS/${taskId}/likesData/${currentUser.uid}`, false);
       showToast('Removed from favorites', 'info');
     } else {
       // Like - increase count (one-time per user)
-      await runDbTransaction(`TASKS/${taskId}/likes`, (current) => (current || 0) + 1);
-      await updateData(`TASKS/${taskId}/likesData/${currentUser.uid}`, true);
+      const currentLikes = parseInt(taskData.likes) || 0;
+      await setData(`TASKS/${taskId}/likes`, currentLikes + 1);
+      await setData(`TASKS/${taskId}/likesData/${currentUser.uid}`, true);
       showToast('Added to favorites! ❤️', 'success');
     }
     
