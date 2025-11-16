@@ -239,14 +239,18 @@ async function handleWithdrawal() {
   showLoading('Processing...');
 
   try {
-    // Create withdrawal request
+    // Create withdrawal request with timestamp as number
+    const timestamp = Date.now();
     const withdrawalData = {
       userId: currentUser.uid,
+      userName: userData.personalInfo?.name || 'User',
+      userEmail: userData.personalInfo?.email || currentUser.email || 'N/A',
+      userPhone: userData.personalInfo?.phone || 'N/A',
       amount: amount,
       method: method.toUpperCase(),
       details: details,
       status: 'pending',
-      timestamp: getServerTimestamp()
+      timestamp: timestamp
     };
 
     const requestId = await pushData('WITHDRAWALS', withdrawalData);
@@ -257,7 +261,7 @@ async function handleWithdrawal() {
       type: 'debit',
       amount: amount,
       reason: `Withdrawal request (${method.toUpperCase()}) - Pending`,
-      timestamp: getServerTimestamp(),
+      timestamp: timestamp,
       withdrawalId: requestId
     });
 
@@ -266,14 +270,14 @@ async function handleWithdrawal() {
     const userEmail = userData.personalInfo?.email || currentUser.email || '';
     await notifyWithdrawalRequest(userName, userEmail, amount, method.toUpperCase(), details);
 
-    showToast('Withdrawal request submitted successfully!', 'success');
+    showToast('Withdrawal request submitted successfully! Please wait for admin approval.', 'success');
 
     // Reset form
     document.getElementById('withdrawAmount').value = '';
-    document.getElementById('upiId').value = '';
-    document.getElementById('accountNumber').value = '';
-    document.getElementById('ifscCode').value = '';
-    document.getElementById('accountName').value = '';
+    if (document.getElementById('upiId')) document.getElementById('upiId').value = '';
+    if (document.getElementById('accountNumber')) document.getElementById('accountNumber').value = '';
+    if (document.getElementById('ifscCode')) document.getElementById('ifscCode').value = '';
+    if (document.getElementById('accountName')) document.getElementById('accountName').value = '';
 
     // Reload withdrawal history
     await loadWithdrawalHistory();

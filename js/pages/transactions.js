@@ -60,19 +60,32 @@ function displayTransactions(transactions) {
   const container = document.getElementById('transactionsContainer');
   if (!container) return;
 
-  container.innerHTML = transactions.map(txn => `
-    <div style="padding: 16px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 12px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <div style="font-size: 14px; font-weight: 600; color: var(--text-color);">${txn.reason || 'Transaction'}</div>
-        <div style="font-size: 18px; font-weight: 800; color: ${txn.type === 'credit' ? '#22c55e' : '#ef4444'};">
-          ${txn.type === 'credit' ? '+' : '-'}${formatCurrency(txn.amount)}
+  container.innerHTML = transactions.map(txn => {
+    let amountColor = '#64748b';
+    let amountPrefix = '';
+    
+    if (txn.type === 'credit') {
+      amountColor = '#22c55e';
+      amountPrefix = '+';
+    } else if (txn.type === 'debit') {
+      amountColor = '#ef4444';
+      amountPrefix = '-';
+    }
+    
+    return `
+      <div style="padding: 16px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="font-size: 14px; font-weight: 600; color: var(--text-color);">${txn.reason || 'Transaction'}</div>
+          <div style="font-size: 18px; font-weight: 800; color: ${amountColor};">
+            ${amountPrefix}${formatCurrency(txn.amount)}
+          </div>
+        </div>
+        <div style="font-size: 12px; color: var(--text-color); opacity: 0.7;">
+          <i class="fas fa-clock"></i> ${formatDateTime(txn.timestamp)}
         </div>
       </div>
-      <div style="font-size: 12px; color: var(--text-color); opacity: 0.7;">
-        <i class="fas fa-clock"></i> ${formatDateTime(txn.timestamp)}
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 // Show no transactions message

@@ -535,30 +535,35 @@ async function loadWithdrawalsView() {
 
 async function approveWithdrawal(withdrawalId, userId, amount) {
   try {
+    const confirmed = await showConfirm(
+      'Approve Withdrawal',
+      `Approve withdrawal of ${formatCurrency(amount)}? User's balance will be deducted.`,
+      'Approve',
+      'Cancel'
+    );
+    
+    if (!confirmed) return;
+    
+    showLoading('Processing...');
+    
     // Deduct balance
     await updateBalance(userId, -amount, 'Withdrawal approved');
     
     // Update withdrawal status
+    const timestamp = Date.now();
     await updateData(`WITHDRAWALS/${withdrawalId}`, { 
       status: 'approved', 
-      processedAt: getServerTimestamp() 
+      processedAt: timestamp,
+      approvedBy: currentUser.uid
     });
     
-    // Create transaction record
-    await pushData('TRANSACTIONS', {
-      userId: userId,
-      type: 'debit',
-      amount: amount,
-      reason: 'Withdrawal approved',
-      timestamp: getServerTimestamp(),
-      withdrawalId: withdrawalId
-    });
-    
-    showToast('Withdrawal approved and processed!', 'success');
+    showToast('Withdrawal approved! User balance deducted successfully.', 'success');
     loadView('withdrawals');
   } catch (error) {
     console.error('Error approving withdrawal:', error);
-    showToast('Error processing withdrawal', 'error');
+    showToast('Error processing withdrawal: ' + error.message, 'error');
+  } finally {
+    hideLoading();
   }
 }
 
@@ -577,20 +582,24 @@ async function rejectWithdrawal(withdrawalId, userId) {
   
   if (reason) {
     try {
+      showLoading('Processing...');
+      
       // Update withdrawal status
+      const timestamp = Date.now();
       await updateData(`WITHDRAWALS/${withdrawalId}`, { 
         status: 'rejected', 
         adminReason: reason, 
-        processedAt: getServerTimestamp() 
+        processedAt: timestamp,
+        rejectedBy: currentUser.uid
       });
       
       // Create transaction record
       await pushData('TRANSACTIONS', {
         userId: userId,
-        type: 'credit',
+        type: 'info',
         amount: 0,
         reason: `Withdrawal rejected: ${reason}`,
-        timestamp: getServerTimestamp(),
+        timestamp: timestamp,
         withdrawalId: withdrawalId
       });
       
@@ -598,7 +607,9 @@ async function rejectWithdrawal(withdrawalId, userId) {
       loadView('withdrawals');
     } catch (error) {
       console.error('Error rejecting withdrawal:', error);
-      showToast('Error processing rejection', 'error');
+      showToast('Error processing rejection: ' + error.message, 'error');
+    } finally {
+      hideLoading();
     }
   }
 }
