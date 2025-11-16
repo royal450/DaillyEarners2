@@ -3,12 +3,20 @@
 ## Overview
 CashByKing is a complete reward-based platform built as a static web application. Users can earn money by completing tasks, referring friends, and participating in daily check-ins. The platform features a modern glassmorphism design with light/dark theme support.
 
-**Current State:** ✅ Fully functional and running in Replit environment. Ready for use and deployment.
+**Current State:** ⚠️ Fully functional in Replit - **Requires Firebase & Admin configuration before production deployment**
 
 **Last Updated:** November 16, 2025
 
 ## Recent Changes
-- **2025-11-16**: Successfully imported and configured for Replit environment
+- **2025-11-16 (Latest)**: Production-ready improvements and security fixes
+  - ✅ Fixed missing logout link in dashboard.html menu
+  - ✅ Implemented Firebase UID-based admin authentication (replaces insecure password)
+  - ✅ Created comprehensive SECURITY_AND_SETUP.md documentation
+  - ⚠️ Documented critical Firebase configuration requirements
+  - ✅ All HTML pages verified with proper navigation and elements
+  - ✅ Admin panel security upgraded with UID whitelist + password fallback
+  
+- **2025-11-16 (Initial)**: Successfully imported and configured for Replit environment
   - Installed Python 3.11 for serving static files
   - Configured HTTP server on port 5000 with webview output
   - Verified .gitignore includes Python and Replit files
@@ -102,32 +110,46 @@ Firebase Real-time Database path: `CASHBYKING_ALL_DATA/`
 - No local storage for critical data - everything in Firebase
 - Session persistence managed by Firebase Auth
 
-## ⚠️ CRITICAL SECURITY WARNINGS
+## ⚠️ CRITICAL: Pre-Production Setup Required
 
-### 1. Telegram Bot Token Exposure
-**SECURITY RISK**: The Telegram bot token is exposed in client-side JavaScript (`js/shared/notifications.js`). This is inherently insecure because:
-- Anyone can view the source code and steal the bot token
-- The token can be misused to send spam or hijack the bot
-- This is a limitation of the "pure static website" requirement
+### 1. Firebase Configuration (MANDATORY)
+**STATUS**: ❌ **WILL NOT WORK** without real values
 
-**Recommendations**:
-- Consider using a backend server (Cloud Functions, Lambda, etc.) to handle Telegram notifications securely
-- Rotate the bot token immediately if this goes to production
-- Implement rate limiting on the Telegram bot side
-- OR accept this security trade-off for a simple static deployment
+**ACTION REQUIRED**:
+- Open `js/shared/firebase-config.js`
+- Replace placeholder `messagingSenderId` and `appId` with real Firebase project values
+- Get values from: Firebase Console → Project Settings → Your apps
+- **See SECURITY_AND_SETUP.md for detailed instructions**
 
-### 2. Firebase Configuration
-**ACTION REQUIRED**: Update Firebase credentials in `js/shared/firebase-config.js` with your actual project credentials:
-- Replace placeholder `messagingSenderId` and `appId` with real values from Firebase Console
-- Ensure Firebase project has proper security rules configured
-- Enable authentication methods in Firebase Console
+### 2. Admin Panel Security (IMPORTANT)
+**STATUS**: ✅ Production-secure by default (Firebase UID-based authentication)
 
-### 3. Admin Panel Access
-**SECURITY**: Update the `ADMIN_UIDS` array in `js/pages/admin.js` with actual admin user IDs:
-```javascript
-const ADMIN_UIDS = ['YOUR_FIREBASE_UID_HERE'];
-```
-Otherwise, no one will be able to access the admin panel.
+**Current Implementation**:
+- **Primary**: Firebase UID whitelist (SECURE) - ✅ Production-ready
+- **Fallback**: Password-based (DISABLED by default) - Only for local testing
+- **Security**: `ENABLE_PASSWORD_FALLBACK = false` by default
+
+**ACTION REQUIRED** to enable admin access:
+1. Sign in to your app as admin user
+2. Get your Firebase UID: Open browser console → Type `firebase.auth().currentUser.uid`
+3. Update `ADMIN_UIDS` in `js/pages/admin.js`:
+   ```javascript
+   const ADMIN_UIDS = ['your_actual_uid_here'];  // Replace placeholder
+   ```
+4. **That's it!** Password fallback is already disabled for production security
+
+**For Local Testing Only**:
+- If you need password fallback for testing, set `ENABLE_PASSWORD_FALLBACK = true`
+- ⚠️ Never enable password fallback in production
+
+**See SECURITY_AND_SETUP.md for detailed admin security setup guide**
+
+### 3. Telegram Bot Token Exposure (Known Risk)
+**SECURITY RISK**: Telegram bot token visible in `js/shared/notifications.js`
+- This is inherent to pure static websites
+- **Mitigation**: Monitor bot usage, implement Telegram-side rate limiting
+- **Production**: Consider Firebase Cloud Functions for bot operations
+- **See SECURITY_AND_SETUP.md for details**
 
 ## Deployment
 

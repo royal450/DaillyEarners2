@@ -1,5 +1,5 @@
 
-// Admin Panel Logic with Password Protection
+// Admin Panel Logic with Firebase UID-based Authentication
 import { auth } from '../shared/firebase-config.js';
 import { getData, setData, updateData, deleteData, pushData, updateBalance, runDbTransaction, getServerTimestamp } from '../shared/db.js';
 import { formatCurrency, formatDate, formatDateTime, showToast, showConfirm, showLoading, hideLoading, generateId } from '../shared/utils.js';
@@ -9,46 +9,106 @@ import { notifyAdminAction } from '../shared/notifications.js';
 let currentUser = null;
 let currentView = 'users';
 
-// Admin password
-const ADMIN_PASSWORD = '848592';
+// IMPORTANT: Add your Firebase user UID(s) here to grant admin access
+// To get your UID: Sign in to the app, open browser console, type: firebase.auth().currentUser.uid
+const ADMIN_UIDS = [
+  'REPLACE_WITH_YOUR_FIREBASE_UID',  // Replace with actual admin user UID
+  // Add more admin UIDs as needed:
+  // 'another_uid_here',
+  // 'yet_another_uid_here'
+];
+
+// Fallback: If ADMIN_UIDS is not configured, allow password-based access (INSECURE - FOR TESTING ONLY)
+// IMPORTANT: Keep this FALSE for production! Only set to true for local testing.
+const ENABLE_PASSWORD_FALLBACK = false;  // Set to true ONLY for local testing
+const FALLBACK_PASSWORD = '848592';  // Only used if ENABLE_PASSWORD_FALLBACK is true
 
 // Initialize page
 document.addEventListener('DOMContentLoaded', async function() {
-  // Check password first
-  await checkAdminPassword();
+  await checkAdminAccess();
 });
 
-async function checkAdminPassword() {
-  const result = await Swal.fire({
-    title: 'Admin Login',
-    html: '<input type="password" id="adminPassword" class="swal2-input" placeholder="Enter Admin Password" autocomplete="off">',
-    confirmButtonText: 'Login',
-    confirmButtonColor: '#6366f1',
-    allowOutsideClick: false,
-    allowEscapeKey: false,
-    showCancelButton: false,
-    showCloseButton: false,
-    preConfirm: () => {
-      const password = document.getElementById('adminPassword').value;
-      if (!password) {
-        Swal.showValidationMessage('Password is required');
-        return false;
+async function checkAdminAccess() {
+  // Wait for Firebase Auth to initialize
+  return new Promise((resolve) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      unsubscribe();
+      
+      if (!user) {
+        // User not logged in
+        await Swal.fire({
+          icon: 'error',
+          title: 'Authentication Required',
+          text: 'Please sign in first to access the admin panel',
+          confirmButtonColor: '#6366f1'
+        });
+        window.location.href = 'index.html';
+        resolve(false);
+        return;
       }
-      if (password !== ADMIN_PASSWORD) {
-        Swal.showValidationMessage('Incorrect password');
-        return false;
+      
+      // Check if user's UID is in the admin list
+      const isConfiguredAdmin = ADMIN_UIDS.some(uid => uid !== 'REPLACE_WITH_YOUR_FIREBASE_UID') && ADMIN_UIDS.includes(user.uid);
+      
+      if (isConfiguredAdmin) {
+        // User is a configured admin - grant access
+        currentUser = user;
+        document.body.style.visibility = 'visible';
+        await initAdminPanel();
+        resolve(true);
+        return;
       }
-      return true;
-    }
-  });
+      
+      // If admin UIDs are not configured and password fallback is enabled
+      if (ENABLE_PASSWORD_FALLBACK && ADMIN_UIDS[0] === 'REPLACE_WITH_YOUR_FIREBASE_UID') {
+        // Show password prompt as fallback (INSECURE)
+        const result = await Swal.fire({
+          title: 'Admin Login',
+          html: '<input type="password" id="adminPassword" class="swal2-input" placeholder="Enter Admin Password" autocomplete="off"><div style="margin-top:10px; font-size:12px; color:#f59e0b;">⚠️ Warning: This is insecure. Please configure ADMIN_UIDS in admin.js</div>',
+          confirmButtonText: 'Login',
+          confirmButtonColor: '#6366f1',
+          allowOutsideClick: false,
+          allowEscapeKey: false,
+          showCancelButton: true,
+          cancelButtonText: 'Cancel',
+          preConfirm: () => {
+            const password = document.getElementById('adminPassword').value;
+            if (!password) {
+              Swal.showValidationMessage('Password is required');
+              return false;
+            }
+            if (password !== FALLBACK_PASSWORD) {
+              Swal.showValidationMessage('Incorrect password');
+              return false;
+            }
+            return true;
+          }
+        });
 
-  if (result.isConfirmed) {
-    document.body.style.visibility = 'visible';
-    await initAdminPanel();
-  } else {
-    // Prevent access without password
-    window.location.href = 'index.html';
-  }
+        if (result.isConfirmed) {
+          currentUser = user;
+          document.body.style.visibility = 'visible';
+          await initAdminPanel();
+          resolve(true);
+        } else {
+          window.location.href = 'dashboard.html';
+          resolve(false);
+        }
+        return;
+      }
+      
+      // User is not an admin
+      await Swal.fire({
+        icon: 'error',
+        title: 'Access Denied',
+        html: `You do not have admin privileges.<br><br><small>Your UID: <code style="background:#f3f4f6;padding:4px 8px;border-radius:4px;font-family:monospace;">${user.uid}</code></small>`,
+        confirmButtonColor: '#ef4444',
+        footer: 'If you should have access, contact the administrator to add your UID to the ADMIN_UIDS list'
+      });
+      window.location.href = 'dashboard.html';
+      resolve(false);
+    });
+  });
 }
 
 async function initAdminPanel() {
