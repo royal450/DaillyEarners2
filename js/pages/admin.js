@@ -297,29 +297,112 @@ async function loadTasksView() {
 
 window.showAddTaskModal = async function() {
   const { value: formValues } = await Swal.fire({
-    title: 'Add New Task',
-    html:
-      '<input id="taskTitle" class="swal2-input" placeholder="Title" style="margin-bottom: 10px;">' +
-      '<textarea id="taskDesc" class="swal2-input" placeholder="Description" style="height: 80px; margin-bottom: 10px;"></textarea>' +
-      '<input id="taskPrice" class="swal2-input" type="number" placeholder="Price (₹)" style="margin-bottom: 10px;">' +
-      '<input id="taskUrl" class="swal2-input" placeholder="Task URL (permanent link)" style="margin-bottom: 10px;">' +
-      '<textarea id="taskSteps" class="swal2-input" placeholder="Steps (one per line)" style="height: 100px; margin-bottom: 10px;"></textarea>' +
-      '<textarea id="taskInstructions" class="swal2-input" placeholder="Important Instructions" style="height: 80px; margin-bottom: 10px;"></textarea>' +
-      '<input id="taskTimeLimit" class="swal2-input" type="number" placeholder="Time Limit (seconds) - optional" style="margin-bottom: 10px;">',
-    width: '600px',
-    focusConfirm: false,
+    title: '<div style="font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; background-clip: text; color: transparent;">✨ Create New Task</div>',
+    html: `
+      <div style="text-align: left; max-width: 580px; margin: 0 auto;">
+        <!-- Task Title -->
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #6366f1; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-heading"></i> Task Title *
+          </label>
+          <input id="taskTitle" class="swal2-input" placeholder="Enter an attractive task title" 
+            style="width: 100%; margin: 0; padding: 12px; border-radius: 10px; border: 2px solid #e5e7eb; font-size: 14px; font-weight: 600;">
+        </div>
+        
+        <!-- Task Description -->
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #6366f1; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-align-left"></i> Description *
+          </label>
+          <textarea id="taskDesc" class="swal2-input" placeholder="Brief description of what users need to do" 
+            style="width: 100%; margin: 0; padding: 12px; height: 90px; border-radius: 10px; border: 2px solid #e5e7eb; resize: vertical; font-size: 14px;"></textarea>
+        </div>
+        
+        <!-- Price and URL Row -->
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 16px;">
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #10b981; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+              <i class="fas fa-coins"></i> Price (₹) *
+            </label>
+            <input id="taskPrice" class="swal2-input" type="number" placeholder="50" 
+              style="width: 100%; margin: 0; padding: 12px; border-radius: 10px; border: 2px solid #e5e7eb; font-size: 16px; font-weight: 800; color: #10b981;">
+          </div>
+          <div>
+            <label style="display: block; font-size: 12px; font-weight: 700; color: #6366f1; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+              <i class="fas fa-link"></i> Task URL *
+            </label>
+            <input id="taskUrl" class="swal2-input" placeholder="https://example.com/task" 
+              style="width: 100%; margin: 0; padding: 12px; border-radius: 10px; border: 2px solid #e5e7eb; font-size: 14px;">
+          </div>
+        </div>
+        
+        <!-- Thumbnail URL -->
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #8b5cf6; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-image"></i> Thumbnail Image URL (Optional)
+          </label>
+          <input id="taskThumbnail" class="swal2-input" placeholder="https://example.com/image.jpg" 
+            style="width: 100%; margin: 0; padding: 12px; border-radius: 10px; border: 2px solid #e5e7eb; font-size: 14px;">
+        </div>
+        
+        <!-- Steps -->
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #6366f1; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-list-ol"></i> Step-by-Step Instructions (One per line)
+          </label>
+          <textarea id="taskSteps" class="swal2-input" placeholder="Visit the website&#10;Complete the signup&#10;Take a screenshot&#10;Submit for review" 
+            style="width: 100%; margin: 0; padding: 12px; height: 110px; border-radius: 10px; border: 2px solid #e5e7eb; resize: vertical; font-size: 13px; line-height: 1.6;"></textarea>
+        </div>
+        
+        <!-- Important Instructions -->
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #f59e0b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-exclamation-triangle"></i> Important Warnings/Instructions
+          </label>
+          <textarea id="taskInstructions" class="swal2-input" placeholder="Complete all steps honestly. Fake submissions will be rejected." 
+            style="width: 100%; margin: 0; padding: 12px; height: 80px; border-radius: 10px; border: 2px solid #fbbf24; resize: vertical; font-size: 13px;"></textarea>
+        </div>
+        
+        <!-- Time Limit -->
+        <div style="margin-bottom: 8px;">
+          <label style="display: block; font-size: 12px; font-weight: 700; color: #ef4444; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+            <i class="fas fa-clock"></i> Time Limit (seconds - optional)
+          </label>
+          <input id="taskTimeLimit" class="swal2-input" type="number" placeholder="Leave empty for no time limit" 
+            style="width: 100%; margin: 0; padding: 12px; border-radius: 10px; border: 2px solid #e5e7eb; font-size: 14px;">
+        </div>
+      </div>
+    `,
+    width: '700px',
+    padding: '30px',
+    background: '#fafafa',
+    confirmButtonText: '<i class="fas fa-rocket"></i> Create Task',
+    confirmButtonColor: '#6366f1',
+    cancelButtonText: 'Cancel',
     showCancelButton: true,
+    focusConfirm: false,
+    customClass: {
+      popup: 'modern-task-modal',
+      confirmButton: 'modern-confirm-btn',
+      cancelButton: 'modern-cancel-btn'
+    },
     preConfirm: () => {
-      const title = document.getElementById('taskTitle').value;
-      const description = document.getElementById('taskDesc').value;
+      const title = document.getElementById('taskTitle').value.trim();
+      const description = document.getElementById('taskDesc').value.trim();
       const price = document.getElementById('taskPrice').value;
-      const url = document.getElementById('taskUrl').value;
+      const url = document.getElementById('taskUrl').value.trim();
+      const thumbnail = document.getElementById('taskThumbnail').value.trim();
       const stepsText = document.getElementById('taskSteps').value;
-      const instructions = document.getElementById('taskInstructions').value;
+      const instructions = document.getElementById('taskInstructions').value.trim();
       const timeLimit = document.getElementById('taskTimeLimit').value;
       
       if (!title || !description || !price || !url) {
-        Swal.showValidationMessage('Please fill all required fields');
+        Swal.showValidationMessage('⚠️ Please fill all required fields (marked with *)');
+        return false;
+      }
+      
+      if (parseFloat(price) <= 0) {
+        Swal.showValidationMessage('⚠️ Price must be greater than 0');
         return false;
       }
       
@@ -327,36 +410,60 @@ window.showAddTaskModal = async function() {
       try {
         new URL(url);
       } catch (e) {
-        Swal.showValidationMessage('Please enter a valid URL');
+        Swal.showValidationMessage('⚠️ Please enter a valid URL (must start with http:// or https://)');
         return false;
       }
       
-      const steps = stepsText ? stepsText.split('\n').filter(s => s.trim()) : [];
+      // Validate thumbnail URL if provided
+      if (thumbnail) {
+        try {
+          new URL(thumbnail);
+        } catch (e) {
+          Swal.showValidationMessage('⚠️ Thumbnail must be a valid URL');
+          return false;
+        }
+      }
+      
+      const steps = stepsText ? stepsText.split('\n').filter(s => s.trim()).map(s => s.trim()) : [];
       
       return {
         title,
         description,
         price: parseFloat(price),
-        url, // Permanently stored in database
+        url,
+        thumbnail: thumbnail || null,
         steps,
-        instructions: instructions || 'Complete all steps honestly. Fake submissions will be rejected.',
+        instructions: instructions || '⚠️ Complete all steps honestly. Fake submissions will be rejected and may result in account suspension.',
         timeLimit: timeLimit ? parseInt(timeLimit) : null
       };
     }
   });
   
   if (formValues) {
-    const taskId = generateId();
-    await setData(`TASKS/${taskId}`, {
-      ...formValues,
-      status: 'active',
-      likes: 0,
-      likesData: {},
-      completedBy: [],
-      createdAt: Date.now()
-    });
-    showToast('Task created successfully!', 'success');
-    loadView('tasks');
+    showLoading('Creating task...');
+    
+    try {
+      const taskId = generateId();
+      await setData(`TASKS/${taskId}`, {
+        ...formValues,
+        status: 'active',
+        likes: 0,
+        likesData: {},
+        completedBy: [],
+        createdAt: Date.now(),
+        // Initialize random stats
+        likedByCount: Math.floor(Math.random() * (500 - 100 + 1)) + 100,
+        lootedByCount: Math.floor(Math.random() * (200 - 50 + 1)) + 50
+      });
+      
+      showToast('✅ Task created successfully! It\'s now visible to all users.', 'success');
+      loadView('tasks');
+    } catch (error) {
+      console.error('Error creating task:', error);
+      showToast('❌ Error creating task: ' + error.message, 'error');
+    } finally {
+      hideLoading();
+    }
   }
 };
 
@@ -547,14 +654,26 @@ async function approveWithdrawal(withdrawalId, userId, amount) {
     showLoading('Processing...');
     
     // Deduct balance
-    await updateBalance(userId, -amount, 'Withdrawal approved');
+    await updateBalance(userId, -amount, 'Withdrawal approved - Funds transferred successfully');
     
     // Update withdrawal status
     const timestamp = Date.now();
     await updateData(`WITHDRAWALS/${withdrawalId}`, { 
       status: 'approved', 
+      adminFeedback: '✅ APPROVED BY ADMIN - Funds transferred successfully',
+      adminReason: 'Withdrawal approved and processed',
       processedAt: timestamp,
       approvedBy: currentUser.uid
+    });
+    
+    // Create transaction record for approval
+    await pushData('TRANSACTIONS', {
+      userId: userId,
+      type: 'debit',
+      amount: amount,
+      reason: `✅ Withdrawal Approved by Admin - Funds transferred`,
+      timestamp: timestamp,
+      withdrawalId: withdrawalId
     });
     
     showToast('Withdrawal approved! User balance deducted successfully.', 'success');
@@ -663,21 +782,72 @@ async function loadPWAView() {
 }
 
 window.showBulkBonusModal = async function() {
-  const { value: amount } = await Swal.fire({
-    title: 'Bulk Bonus',
-    input: 'number',
-    inputLabel: 'Amount to give to all users',
-    inputPlaceholder: '10',
-    showCancelButton: true
+  const { value: formValues } = await Swal.fire({
+    title: 'Bulk Bonus Distribution',
+    html:
+      '<input id="bonusAmount" class="swal2-input" type="number" placeholder="Amount (₹)" style="margin-bottom: 10px;">' +
+      '<input id="bonusReason" class="swal2-input" placeholder="Reason for bonus (e.g., Festival Bonus, Thank You Bonus)" style="margin-bottom: 10px;">',
+    focusConfirm: false,
+    showCancelButton: true,
+    preConfirm: () => {
+      const amount = document.getElementById('bonusAmount').value;
+      const reason = document.getElementById('bonusReason').value;
+      
+      if (!amount || parseFloat(amount) <= 0) {
+        Swal.showValidationMessage('Please enter a valid amount');
+        return false;
+      }
+      
+      if (!reason || reason.trim() === '') {
+        Swal.showValidationMessage('Please enter a reason for the bonus');
+        return false;
+      }
+      
+      return { amount: parseFloat(amount), reason: reason.trim() };
+    }
   });
   
-  if (amount) {
-    const allUsers = await getData('USERS');
-    if (allUsers) {
-      for (const uid in allUsers) {
-        await updateBalance(uid, parseFloat(amount), 'Bulk bonus from admin');
+  if (formValues) {
+    const confirmed = await showConfirm(
+      'Confirm Bulk Bonus',
+      `Give ₹${formValues.amount} to ALL users for: "${formValues.reason}"?`,
+      'Confirm',
+      'Cancel'
+    );
+    
+    if (!confirmed) return;
+    
+    showLoading('Distributing bonus...');
+    
+    try {
+      const allUsers = await getData('USERS');
+      if (allUsers) {
+        const timestamp = Date.now();
+        let count = 0;
+        
+        for (const uid in allUsers) {
+          // Add bonus to user balance
+          await updateBalance(uid, formValues.amount, `🎁 Admin Bonus: ${formValues.reason}`);
+          
+          // Create transaction record
+          await pushData('TRANSACTIONS', {
+            userId: uid,
+            type: 'credit',
+            amount: formValues.amount,
+            reason: `🎁 Bulk Bonus from Admin: ${formValues.reason}`,
+            timestamp: timestamp
+          });
+          
+          count++;
+        }
+        
+        showToast(`Bulk bonus of ₹${formValues.amount} distributed to ${count} users!`, 'success');
       }
-      showToast('Bulk bonus distributed!', 'success');
+    } catch (error) {
+      console.error('Bulk bonus error:', error);
+      showToast('Error distributing bonus: ' + error.message, 'error');
+    } finally {
+      hideLoading();
     }
   }
 };

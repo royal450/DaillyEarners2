@@ -42,39 +42,162 @@ async function loadPendingTasks() {
   displayPendingTasks(userPendingTasks);
 }
 
-// Display pending tasks
+// Display pending tasks with modern design
 function displayPendingTasks(tasks) {
   const container = document.getElementById('pendingContainer');
   if (!container) return;
 
-  container.innerHTML = tasks.map(task => `
-    <div style="padding: 16px; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 12px;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-        <div style="flex: 1;">
-          <div style="font-size: 15px; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">${task.taskTitle || 'Task'}</div>
-          <div style="font-size: 12px; color: var(--text-color); opacity: 0.7;">
-            <i class="fas fa-clock"></i> ${formatDateTime(task.submittedAt)}
-          </div>
-          ${task.taskPrice ? `
-            <div style="font-size: 13px; font-weight: 700; color: #10b981; margin-top: 4px;">
-              <i class="fas fa-coins"></i> ₹${task.taskPrice}
+  container.innerHTML = tasks.map(task => {
+    let statusColor = getStatusColor(task.status);
+    let statusIcon = 'fa-clock';
+    let statusText = task.status;
+    let statusBg = 'rgba(245, 158, 11, 0.15)';
+    let statusBorder = 'rgba(245, 158, 11, 0.3)';
+    
+    if (task.status === 'approved') {
+      statusIcon = 'fa-check-circle';
+      statusText = 'Approved';
+      statusBg = 'rgba(34, 197, 94, 0.15)';
+      statusBorder = 'rgba(34, 197, 94, 0.4)';
+    } else if (task.status === 'rejected') {
+      statusIcon = 'fa-times-circle';
+      statusText = 'Rejected';
+      statusBg = 'rgba(239, 68, 68, 0.15)';
+      statusBorder = 'rgba(239, 68, 68, 0.4)';
+    } else {
+      statusIcon = 'fa-hourglass-half';
+      statusText = 'Under Review';
+      statusBg = 'rgba(245, 158, 11, 0.15)';
+      statusBorder = 'rgba(245, 158, 11, 0.4)';
+    }
+    
+    return `
+      <div style="
+        position: relative;
+        padding: 20px;
+        background: var(--card-bg);
+        backdrop-filter: blur(20px);
+        border-radius: 18px;
+        border: 1.5px solid ${statusBorder};
+        margin-bottom: 18px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      " class="pending-task-card">
+        <!-- Status Indicator Strip -->
+        <div style="
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 5px;
+          height: 100%;
+          background: ${statusColor};
+        "></div>
+        
+        <!-- Content -->
+        <div style="padding-left: 10px;">
+          <!-- Header Row -->
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; gap: 12px;">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 17px; font-weight: 800; color: var(--text-color); margin-bottom: 6px; line-height: 1.3;">
+                ${task.taskTitle || 'Task Submission'}
+              </div>
+              <div style="font-size: 12px; color: var(--text-color); opacity: 0.65; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                <span style="display: flex; align-items: center; gap: 4px;">
+                  <i class="fas fa-calendar-alt" style="font-size: 10px;"></i>
+                  ${formatDateTime(task.submittedAt)}
+                </span>
+                ${task.taskPrice ? `
+                  <span style="display: flex; align-items: center; gap: 4px; font-weight: 700; color: #10b981;">
+                    <i class="fas fa-coins"></i>
+                    ₹${task.taskPrice}
+                  </span>
+                ` : ''}
+              </div>
             </div>
-          ` : ''}
-        </div>
-        <div style="padding: 6px 14px; border-radius: 12px; background: ${getStatusColor(task.status)}; color: white; font-size: 11px; font-weight: 700; text-transform: uppercase;">
-          ${task.status}
+            
+            <!-- Status Badge -->
+            <div style="
+              padding: 10px 18px;
+              background: ${statusBg};
+              border: 1.5px solid ${statusBorder};
+              border-radius: 20px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              flex-shrink: 0;
+            ">
+              <i class="fas ${statusIcon}" style="font-size: 14px; color: ${statusColor};"></i>
+              <span style="font-size: 12px; font-weight: 800; color: ${statusColor}; text-transform: uppercase; letter-spacing: 0.5px;">
+                ${statusText}
+              </span>
+            </div>
+          </div>
+          
+          <!-- Admin Feedback Section -->
+          ${task.adminFeedback ? `
+            <div style="
+              position: relative;
+              padding: 16px;
+              background: ${task.status === 'approved' ? 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05))' : 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))'};
+              border-radius: 12px;
+              border: 1.5px solid ${task.status === 'approved' ? 'rgba(34, 197, 94, 0.4)' : 'rgba(239, 68, 68, 0.4)'};
+              margin-top: 12px;
+            ">
+              <div style="display: flex; align-items: start; gap: 12px;">
+                <div style="
+                  width: 40px;
+                  height: 40px;
+                  border-radius: 50%;
+                  background: ${task.status === 'approved' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'};
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  flex-shrink: 0;
+                ">
+                  <i class="fas fa-${task.status === 'approved' ? 'user-shield' : 'exclamation-triangle'}" style="font-size: 18px; color: ${task.status === 'approved' ? '#22c55e' : '#ef4444'};"></i>
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 11px; font-weight: 800; color: var(--text-color); opacity: 0.75; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                    ${task.status === 'approved' ? '✅ Admin Approved' : '⚠️ Admin Response'}
+                  </div>
+                  <div style="font-size: 15px; font-weight: 700; color: var(--text-color); line-height: 1.5;">
+                    ${task.adminFeedback}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ` : `
+            <div style="
+              padding: 14px;
+              background: rgba(245, 158, 11, 0.1);
+              border-radius: 10px;
+              border: 1px dashed rgba(245, 158, 11, 0.3);
+              text-align: center;
+            ">
+              <i class="fas fa-hourglass-half" style="font-size: 16px; color: #f59e0b; margin-right: 8px;"></i>
+              <span style="font-size: 13px; font-weight: 600; color: var(--text-color); opacity: 0.8;">
+                Your submission is being reviewed by admin...
+              </span>
+            </div>
+          `}
         </div>
       </div>
-      ${task.adminFeedback ? `
-        <div style="padding: 12px; background: ${task.status === 'approved' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'}; border-radius: 8px; border: 1px solid ${task.status === 'approved' ? '#22c55e' : '#ef4444'}; margin-top: 8px;">
-          <div style="font-size: 11px; font-weight: 700; color: var(--text-color); opacity: 0.8; margin-bottom: 6px;">
-            <i class="fas fa-${task.status === 'approved' ? 'check-circle' : 'times-circle'}"></i> Admin Feedback:
-          </div>
-          <div style="font-size: 14px; font-weight: 600; color: var(--text-color);">${task.adminFeedback}</div>
-        </div>
-      ` : ''}
-    </div>
-  `).join('');
+    `;
+  }).join('');
+  
+  // Add hover effects
+  setTimeout(() => {
+    document.querySelectorAll('.pending-task-card').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        card.style.transform = 'translateY(-6px) scale(1.01)';
+        card.style.boxShadow = '0 15px 35px rgba(0, 0, 0, 0.12)';
+      });
+      card.addEventListener('mouseleave', () => {
+        card.style.transform = 'translateY(0) scale(1)';
+        card.style.boxShadow = 'none';
+      });
+    });
+  }, 100);
 }
 
 // Get status color

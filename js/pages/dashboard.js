@@ -233,7 +233,7 @@ async function loadTasks() {
     return;
   }
   
-  // Filter active tasks
+  // Filter active tasks (stats are initialized by admin when task is created)
   const activeTasks = Object.entries(allTasks)
     .filter(([_, task]) => task.status === 'active')
     .map(([id, task]) => ({ id, ...task }));
@@ -259,52 +259,189 @@ function displayTasks(tasks) {
   });
 }
 
-// Create task card element
+// Create modern task card element
 function createTaskCard(task) {
   const card = document.createElement('div');
   card.className = 'task-card';
+  
+  // Check if user has liked this task (from localStorage - client-side only)
+  const userLikesKey = `task_likes_${currentUser.uid}`;
+  const userLikes = JSON.parse(localStorage.getItem(userLikesKey) || '{}');
+  const userLiked = userLikes[task.id] === true;
+  
+  // Like count is just for display (not editable by users)
+  const likeCount = task.likes || 0;
+  // Use defaults for stats if not set (for older tasks created before this feature)
+  const likedByCount = task.likedByCount || 250;  // Default middle value
+  const lootedByCount = task.lootedByCount || 125;  // Default middle value
+  
   card.style.cssText = `
     background: var(--card-bg);
-    border-radius: 16px;
-    padding: 16px;
-    margin-bottom: 16px;
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 0;
+    margin-bottom: 20px;
     border: 1px solid var(--border-color);
-    cursor: pointer;
-    transition: all 0.3s ease;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   `;
   
   card.innerHTML = `
-    <div style="display: flex; gap: 12px; align-items: flex-start;">
-      <div style="width: 60px; height: 60px; border-radius: 12px; background: ${task.thumbnail ? `url(${task.thumbnail}) center/cover` : 'var(--accent-gradient)'}; flex-shrink: 0;"></div>
-      <div style="flex: 1;">
-        <h3 style="font-size: 15px; font-weight: 700; color: var(--text-color); margin-bottom: 4px;">${task.title || 'Task'}</h3>
-        <p style="font-size: 12px; color: var(--text-color); opacity: 0.7; margin-bottom: 8px; line-height: 1.4;">${(task.description || '').substring(0, 80)}...</p>
-        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-          <div style="display: flex; align-items: center; gap: 12px; font-size: 11px; color: var(--text-color); opacity: 0.6;">
-            <span><i class="fas fa-heart"></i> ${task.likes || 0}</span>
-            <span><i class="fas fa-users"></i> ${task.completedBy ? task.completedBy.length : 0} completed</span>
-          </div>
-          <div style="font-size: 16px; font-weight: 800; color: var(--accent-color);">${formatCurrency(task.price || 0)}</div>
+    <!-- Big Thumbnail -->
+    <div style="width: 100%; height: 200px; background: ${task.thumbnail ? `url(${task.thumbnail}) center/cover` : 'var(--accent-gradient)'}; position: relative; overflow: hidden;">
+      <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 100%);"></div>
+      <div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 8px;">
+        <div style="background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; color: white;">
+          <i class="fas fa-users"></i> Looted by ${lootedByCount}
         </div>
+      </div>
+    </div>
+    
+    <!-- Card Content -->
+    <div style="padding: 20px;">
+      <!-- Title -->
+      <h3 style="font-size: 18px; font-weight: 800; color: var(--text-color); margin-bottom: 8px; line-height: 1.3;">${task.title || 'Task'}</h3>
+      
+      <!-- Description -->
+      <p style="font-size: 13px; color: var(--text-color); opacity: 0.75; margin-bottom: 16px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${task.description || 'Complete this task and earn rewards!'}</p>
+      
+      <!-- Stats Row -->
+      <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+        <!-- Like Button -->
+        <button 
+          class="like-btn" 
+          data-task-id="${task.id}"
+          style="background: ${userLiked ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'rgba(99, 102, 241, 0.1)'}; 
+                 border: none; 
+                 padding: 8px 16px; 
+                 border-radius: 20px; 
+                 font-size: 12px; 
+                 font-weight: 700; 
+                 color: ${userLiked ? 'white' : 'var(--accent-color)'}; 
+                 cursor: pointer; 
+                 transition: all 0.3s ease;
+                 display: flex;
+                 align-items: center;
+                 gap: 6px;">
+          <i class="fas fa-heart${userLiked ? '' : '-o'}"></i>
+          <span>${likeCount}</span>
+        </button>
+        
+        <!-- Liked by stats -->
+        <div style="font-size: 12px; color: var(--text-color); opacity: 0.7; font-weight: 600;">
+          <i class="fas fa-fire" style="color: #f59e0b;"></i> Liked by ${likedByCount}
+        </div>
+        
+        <!-- Completed count -->
+        <div style="font-size: 12px; color: var(--text-color); opacity: 0.7; font-weight: 600;">
+          <i class="fas fa-check-circle" style="color: #22c55e;"></i> ${task.completedBy ? task.completedBy.length : 0} completed
+        </div>
+      </div>
+      
+      <!-- Price and Start Button -->
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+        <!-- Price Highlight -->
+        <div style="flex: 1; background: var(--accent-gradient); padding: 16px 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">
+          <div style="font-size: 11px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Earn</div>
+          <div style="font-size: 24px; font-weight: 900; color: white;">${formatCurrency(task.price || 0)}</div>
+        </div>
+        
+        <!-- Start Button -->
+        <button 
+          class="start-task-btn" 
+          data-task-id="${task.id}"
+          style="flex: 1; 
+                 background: linear-gradient(135deg, #10b981, #059669); 
+                 border: none; 
+                 padding: 20px 24px; 
+                 border-radius: 16px; 
+                 font-size: 15px; 
+                 font-weight: 800; 
+                 color: white; 
+                 cursor: pointer; 
+                 transition: all 0.3s ease;
+                 box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+                 text-transform: uppercase;
+                 letter-spacing: 0.5px;">
+          <i class="fas fa-rocket"></i> Start Task
+        </button>
       </div>
     </div>
   `;
   
-  card.addEventListener('click', () => {
-    redirectTo(`task-detail.html?id=${task.id}`);
-  });
-  
+  // Add hover effect to card
   card.addEventListener('mouseenter', () => {
-    card.style.transform = 'translateY(-2px)';
-    card.style.boxShadow = 'var(--card-shadow)';
+    card.style.transform = 'translateY(-8px) scale(1.02)';
+    card.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.15)';
   });
   
   card.addEventListener('mouseleave', () => {
-    card.style.transform = 'translateY(0)';
-    card.style.boxShadow = 'none';
+    card.style.transform = 'translateY(0) scale(1)';
+    card.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.08)';
+  });
+  
+  // Add like button functionality
+  const likeBtn = card.querySelector('.like-btn');
+  likeBtn.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    await handleTaskLike(task.id);
+  });
+  
+  // Add start button functionality
+  const startBtn = card.querySelector('.start-task-btn');
+  startBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    redirectTo(`task-detail.html?id=${task.id}`);
+  });
+  
+  // Hover effects for buttons
+  likeBtn.addEventListener('mouseenter', () => {
+    likeBtn.style.transform = 'scale(1.05)';
+  });
+  likeBtn.addEventListener('mouseleave', () => {
+    likeBtn.style.transform = 'scale(1)';
+  });
+  
+  startBtn.addEventListener('mouseenter', () => {
+    startBtn.style.transform = 'scale(1.05)';
+    startBtn.style.boxShadow = '0 8px 25px rgba(16, 185, 129, 0.5)';
+  });
+  startBtn.addEventListener('mouseleave', () => {
+    startBtn.style.transform = 'scale(1)';
+    startBtn.style.boxShadow = '0 4px 15px rgba(16, 185, 129, 0.4)';
   });
   
   return card;
+}
+
+// Handle task like/unlike (client-side only, stored in localStorage)
+async function handleTaskLike(taskId) {
+  try {
+    // Get user's likes from localStorage
+    const userLikesKey = `task_likes_${currentUser.uid}`;
+    const userLikes = JSON.parse(localStorage.getItem(userLikesKey) || '{}');
+    
+    // Toggle like status
+    if (userLikes[taskId]) {
+      // Unlike
+      delete userLikes[taskId];
+      showToast('Removed from favorites', 'info');
+    } else {
+      // Like
+      userLikes[taskId] = true;
+      showToast('Added to favorites! ❤️', 'success');
+    }
+    
+    // Save to localStorage
+    localStorage.setItem(userLikesKey, JSON.stringify(userLikes));
+    
+    // Reload tasks to update UI
+    await loadTasks();
+  } catch (error) {
+    console.error('Like error:', error);
+    showToast('Error updating like', 'error');
+  }
 }
 
 // Show no tasks message
