@@ -158,22 +158,30 @@ function displayTaskDetails() {
   const taskRewardElement = document.getElementById('taskReward');
   if (taskRewardElement) {
     const taskPrice = currentTask.price || currentTask.reward || 0;
-    taskRewardElement.textContent = taskPrice;
+    taskRewardElement.textContent = taskPrice.toString();
     console.log('Task price set to:', taskPrice);
+  } else {
+    console.error('taskReward element not found');
   }
 
   // Show task title
   const taskTitleElement = document.getElementById('taskTitle');
   if (taskTitleElement) {
-    taskTitleElement.textContent = currentTask.title || currentTask.name || 'Task';
-    console.log('Task title set to:', currentTask.title);
+    const title = currentTask.title || currentTask.name || 'Unnamed Task';
+    taskTitleElement.textContent = title;
+    console.log('Task title set to:', title);
+  } else {
+    console.error('taskTitle element not found');
   }
 
   // Show task description
   const taskDescElement = document.getElementById('taskDescription');
   if (taskDescElement) {
-    taskDescElement.textContent = currentTask.description || 'Complete this task to earn rewards!';
-    console.log('Task description set');
+    const description = currentTask.description || 'Complete this task to earn rewards!';
+    taskDescElement.textContent = description;
+    console.log('Task description set to:', description);
+  } else {
+    console.error('taskDescription element not found');
   }
 
   // Display steps - Check multiple possible fields
@@ -228,6 +236,8 @@ function displayTaskDetails() {
         </div>
       `;
     }
+  } else {
+    console.error('stepsContainer element not found');
   }
 
   // Display instructions - Check multiple possible fields
@@ -247,6 +257,8 @@ function displayTaskDetails() {
       instructionElement.textContent = '⚠️ Complete all steps honestly. Fake submissions will be rejected and may result in account suspension.';
       console.log('Using default instructions');
     }
+  } else {
+    console.error('taskInstruction element not found');
   }
 
   // Display timer warning if exists
