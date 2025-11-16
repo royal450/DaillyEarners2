@@ -88,92 +88,155 @@ async function handleSignup(event) {
 // Load task details
 async function loadTaskDetails() {
   try {
-    showLoading();
+    // Show loading overlay
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'pageLoadingOverlay';
+    loadingOverlay.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    `;
+    loadingOverlay.innerHTML = `
+      <div style="background: white; padding: 30px; border-radius: 15px; text-align: center;">
+        <i class="fas fa-spinner fa-spin" style="font-size: 40px; color: #6366f1; margin-bottom: 15px;"></i>
+        <div style="font-size: 16px; font-weight: 600; color: #1f2937;">Loading task details...</div>
+      </div>
+    `;
+    document.body.appendChild(loadingOverlay);
+
+    console.log('Fetching task:', taskId);
     currentTask = await getData(`TASKS/${taskId}`);
+    console.log('Task data:', currentTask);
+
+    // Remove loading overlay
+    if (loadingOverlay && loadingOverlay.parentNode) {
+      loadingOverlay.remove();
+    }
 
     if (!currentTask) {
-      hideLoading();
       showToast('Task not found', 'error');
       setTimeout(() => redirectTo('dashboard.html'), 1500);
       return;
     }
 
     if (currentTask.status !== 'active') {
-      hideLoading();
       showToast('This task is no longer active', 'warning');
       setTimeout(() => redirectTo('dashboard.html'), 1500);
       return;
     }
 
+    // Display task details
     displayTaskDetails();
+    
+    // Check task status
     await checkTaskStatus();
-    hideLoading();
+
   } catch (error) {
     console.error('Error loading task:', error);
-    hideLoading();
-    showToast('Failed to load task details', 'error');
+    
+    // Remove loading overlay on error
+    const loadingOverlay = document.getElementById('pageLoadingOverlay');
+    if (loadingOverlay && loadingOverlay.parentNode) {
+      loadingOverlay.remove();
+    }
+    
+    showToast('Failed to load task details. Please try again.', 'error');
     setTimeout(() => redirectTo('dashboard.html'), 1500);
   }
 }
 
 // Display task details
 function displayTaskDetails() {
-  document.getElementById('taskTitle').textContent = currentTask.title || 'Task';
-  document.getElementById('taskReward').textContent = currentTask.price || 0;
-  document.getElementById('taskDescription').textContent = currentTask.description || '';
+  // Hide any loading states
+  const loadingElements = document.querySelectorAll('.loading-text, .loading-placeholder');
+  loadingElements.forEach(el => {
+    el.style.display = 'none';
+  });
+
+  // Show task reward (price)
+  const taskRewardElement = document.getElementById('taskReward');
+  if (taskRewardElement) {
+    taskRewardElement.textContent = formatCurrency(currentTask.price || 0);
+    taskRewardElement.style.display = 'block';
+  }
+
+  // Show task title
+  const taskTitleElement = document.getElementById('taskTitle');
+  if (taskTitleElement) {
+    taskTitleElement.textContent = currentTask.title || 'Task';
+    taskTitleElement.style.display = 'block';
+  }
+
+  // Show task description
+  const taskDescElement = document.getElementById('taskDescription');
+  if (taskDescElement) {
+    taskDescElement.textContent = currentTask.description || 'Complete this task to earn rewards!';
+    taskDescElement.style.display = 'block';
+  }
 
   // Display steps
   const stepsContainer = document.getElementById('stepsContainer');
-  if (currentTask.steps && Array.isArray(currentTask.steps) && currentTask.steps.length > 0) {
-    stepsContainer.innerHTML = currentTask.steps.map((step, index) => `
-      <div class="step-item">
-        <div class="step-number">${index + 1}</div>
-        <div class="step-content">
-          <div class="step-text">${step}</div>
+  if (stepsContainer) {
+    if (currentTask.steps && Array.isArray(currentTask.steps) && currentTask.steps.length > 0) {
+      stepsContainer.innerHTML = currentTask.steps.map((step, index) => `
+        <div class="step-item">
+          <div class="step-number">${index + 1}</div>
+          <div class="step-content">
+            <div class="step-text">${step}</div>
+          </div>
         </div>
-      </div>
-    `).join('');
-  } else {
-    stepsContainer.innerHTML = `
-      <div class="step-item">
-        <div class="step-number">1</div>
-        <div class="step-content">
-          <div class="step-text">Click "Visit Task" button to open the task link</div>
+      `).join('');
+    } else {
+      stepsContainer.innerHTML = `
+        <div class="step-item">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <div class="step-text">Click "Visit Task" button to open the task link</div>
+          </div>
         </div>
-      </div>
-      <div class="step-item">
-        <div class="step-number">2</div>
-        <div class="step-content">
-          <div class="step-text">Complete all the required actions on the website</div>
+        <div class="step-item">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <div class="step-text">Complete all the required actions on the website</div>
+          </div>
         </div>
-      </div>
-      <div class="step-item">
-        <div class="step-number">3</div>
-        <div class="step-content">
-          <div class="step-text">Return here and click "Submit Task" button for review</div>
+        <div class="step-item">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <div class="step-text">Return here and click "Submit Task" button for review</div>
+          </div>
         </div>
-      </div>
-    `;
+      `;
+    }
+    stepsContainer.style.display = 'block';
   }
 
   // Display instructions
   const instructionElement = document.getElementById('taskInstruction');
-  if (currentTask.instructions) {
-    instructionElement.textContent = currentTask.instructions;
-  } else {
-    instructionElement.textContent = '⚠️ Complete all steps honestly. Fake submissions will be rejected and may result in account suspension.';
+  if (instructionElement) {
+    if (currentTask.instructions) {
+      instructionElement.textContent = currentTask.instructions;
+    } else {
+      instructionElement.textContent = '⚠️ Complete all steps honestly. Fake submissions will be rejected and may result in account suspension.';
+    }
+    instructionElement.style.display = 'block';
   }
 
   // Display timer warning if exists
-  if (currentTask.timeLimit) {
-    const timerWarning = document.getElementById('timerWarning');
-    const timerSeconds = document.getElementById('timerSeconds');
+  const timerWarning = document.getElementById('timerWarning');
+  const timerSeconds = document.getElementById('timerSeconds');
+  if (currentTask.timeLimit && timerWarning && timerSeconds) {
     timerWarning.style.display = 'flex';
     timerSeconds.textContent = currentTask.timeLimit;
-  } else {
-    // Hide timer warning if no time limit and element exists
-    const timerWarning = document.getElementById('timerWarning');
-    if (timerWarning) timerWarning.style.display = 'none';
+  } else if (timerWarning) {
+    timerWarning.style.display = 'none';
   }
 }
 
