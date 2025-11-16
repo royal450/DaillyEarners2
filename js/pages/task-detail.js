@@ -67,25 +67,6 @@ async function onUserAuthenticated(user) {
 
   await loadTaskDetails();
   setupTaskActions();
-
-  // Check if the user has a referral code from the URL and apply it
-  const referralCodeFromUrl = getQueryParam('ref');
-  if (referralCodeFromUrl) {
-    const referrerData = await getData(`USERS_BY_REFERRAL_CODE/${referralCodeFromUrl}`);
-    if (referrerData && referrerData.userId) {
-      await runDbTransaction(`USERS/${currentUser.uid}/personalInfo`, (current) => {
-        return {
-          ...(current || {}),
-          referrerId: referrerData.userId,
-          hasReceivedSignupBonus: false // Initialize signup bonus status
-        };
-      });
-      // Apply signup bonus
-      await updateBalance(currentUser.uid, 5, 'Signup bonus');
-      await setData(`USERS/${currentUser.uid}/personalInfo/hasReceivedSignupBonus`, true);
-      showToast('Yeah! You got 5rs instantly', 'success');
-    }
-  }
 }
 
 function onUserNotAuthenticated() {
@@ -97,91 +78,10 @@ function onUserNotAuthenticated() {
 // Handle signup form submission
 async function handleSignup(event) {
   event.preventDefault();
-  showLoading('Creating account...');
-
-  const email = document.getElementById('signupEmail').value;
-  const password = document.getElementById('signupPassword').value;
-  const referralCodeInput = document.getElementById('referralCodeInput');
-  const referralCode = referralCodeInput.value;
-
-  try {
-    // Attempt to create user with email and password
-    const newUserCredential = await auth.createUserWithEmailAndPassword(email, password);
-    const newUser = newUserCredential.user;
-
-    // Get referrer's userId if referral code is provided
-    let referrerUserId = null;
-    if (referralCode) {
-      const referrerData = await getData(`USERS_BY_REFERRAL_CODE/${referralCode}`);
-      if (referrerData && referrerData.userId) {
-        referrerUserId = referrerData.userId;
-      } else {
-        throw new Error('Invalid referral code.');
-      }
-    }
-
-    // Create user profile in database
-    await pushData('USERS', {
-      uid: newUser.uid,
-      email: newUser.email,
-      createdAt: getServerTimestamp(),
-      balance: 5, // Signup bonus
-      personalInfo: {
-        name: email.split('@')[0], // Default name
-        referrerId: referrerUserId,
-        hasReceivedSignupBonus: true,
-        hasReceivedFirstTaskBonus: false // Initialize first task bonus status
-      },
-      referralCode: generateReferralCode(), // Generate unique referral code for the new user
-      taskHistory: {
-        pending: 0,
-        completed: 0
-      },
-      transactions: [{
-        amount: 5,
-        description: 'Signup bonus',
-        timestamp: getServerTimestamp()
-      }]
-    });
-
-    // Update user's referral code lookup
-    await setData(`USERS_BY_REFERRAL_CODE/${await getReferralCodeForUser(newUser.uid)}`, { userId: newUser.uid });
-
-
-    // If referrer exists, update their referral count and earnings
-    if (referrerUserId) {
-      await runDbTransaction(`USERS/${referrerUserId}/referrals/count`, (current) => (current || 0) + 1);
-      await runDbTransaction(`USERS/${referrerUserId}/referrals/earnings`, (current) => (current || 0) + 5); // Signup bonus for referrer
-    }
-
-    showToast('✅ Account created successfully! You got 5rs instantly.', 'success');
-    hideLoading();
-    // Automatically log in the user
-    await auth.signInWithEmailAndPassword(email, password);
-    currentUser = auth.currentUser;
-    onUserAuthenticated(currentUser); // Manually call authenticated handler
-
-  } catch (error) {
-    console.error('Signup error:', error);
-    showToast(`❌ ${error.message}`, 'error');
-    hideLoading();
-  }
-}
-
-// Generate a unique referral code for a user
-function generateReferralCode() {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
-  for (let i = 0; i < 8; i++) {
-    code += characters.charAt(Math.floor(Math.random() * characters.length));
-  }
-  return code;
-}
-
-// Get referral code for a user (assuming it's stored in the user's profile)
-async function getReferralCodeForUser(userId) {
-  const userData = await getData(`USERS/${userId}`);
-  return userData?.referralCode;
+  showToast('Please use the signup page to create an account', 'info');
+  setTimeout(() => {
+    window.location.href = 'index.html?ref=' + (document.getElementById('referralCodeInput').value || '');
+  }, 1500);
 }
 
 // Load task details

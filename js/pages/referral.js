@@ -103,6 +103,7 @@ function showNoReferralCode() {
 // Load referral statistics
 async function loadReferralStats() {
   try {
+    const userData = await getData(`USERS/${currentUser.uid}`);
     const allUsers = await getData('USERS');
 
     if (!allUsers) {
@@ -111,30 +112,22 @@ async function loadReferralStats() {
     }
 
     let totalReferrals = 0;
-    let totalEarnings = 0;
 
     for (const uid in allUsers) {
       // Skip the current user
       if (uid === currentUser.uid) continue;
       
-      const userData = allUsers[uid];
-      const referrerId = userData.personalInfo?.referrerId;
+      const user = allUsers[uid];
+      const referrerId = user.personalInfo?.referrerId;
       
       // Check if this user was referred by current user
       if (referrerId && referrerId.toString() === currentUser.uid.toString()) {
         totalReferrals++;
-        
-        // ₹5 signup bonus (given once)
-        if (userData.personalInfo?.hasReceivedSignupBonus) {
-          totalEarnings += 5;
-        }
-        
-        // ₹10 first task completion bonus (given once)
-        if (userData.personalInfo?.hasReceivedFirstTaskBonus) {
-          totalEarnings += 10;
-        }
       }
     }
+
+    // Get total earnings from referrals stored in user data
+    const totalEarnings = userData?.referrals?.earnings || 0;
 
     updateStatsUI(totalReferrals, totalEarnings);
   } catch (error) {
