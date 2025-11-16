@@ -40,6 +40,12 @@ async function loadTaskDetails() {
     return;
   }
 
+  if (currentTask.status !== 'active') {
+    showToast('This task is no longer active', 'warning');
+    redirectTo('dashboard.html');
+    return;
+  }
+
   displayTaskDetails();
   await checkTaskStatus();
 }
@@ -47,12 +53,12 @@ async function loadTaskDetails() {
 // Display task details
 function displayTaskDetails() {
   document.getElementById('taskTitle').textContent = currentTask.title || 'Task';
-  document.getElementById('taskReward').textContent = formatCurrency(currentTask.price || 0); // Use formatCurrency for price
+  document.getElementById('taskReward').textContent = currentTask.price || 0;
   document.getElementById('taskDescription').textContent = currentTask.description || '';
 
   // Display steps
   const stepsContainer = document.getElementById('stepsContainer');
-  if (currentTask.steps && Array.isArray(currentTask.steps)) {
+  if (currentTask.steps && Array.isArray(currentTask.steps) && currentTask.steps.length > 0) {
     stepsContainer.innerHTML = currentTask.steps.map((step, index) => `
       <div class="step-item">
         <div class="step-number">${index + 1}</div>
@@ -62,24 +68,23 @@ function displayTaskDetails() {
       </div>
     `).join('');
   } else {
-    // Fallback steps if none are provided
     stepsContainer.innerHTML = `
       <div class="step-item">
         <div class="step-number">1</div>
         <div class="step-content">
-          <div class="step-text">Visit the task link and complete the required action</div>
+          <div class="step-text">Click "Visit Task" button to open the task link</div>
         </div>
       </div>
       <div class="step-item">
         <div class="step-number">2</div>
         <div class="step-content">
-          <div class="step-text">Take screenshot as proof (if required)</div>
+          <div class="step-text">Complete all the required actions on the website</div>
         </div>
       </div>
       <div class="step-item">
         <div class="step-number">3</div>
         <div class="step-content">
-          <div class="step-text">Click Submit Task button below</div>
+          <div class="step-text">Return here and click "Submit Task" button for review</div>
         </div>
       </div>
     `;
@@ -90,7 +95,7 @@ function displayTaskDetails() {
   if (currentTask.instructions) {
     instructionElement.textContent = currentTask.instructions;
   } else {
-    instructionElement.textContent = 'Complete all steps honestly. Fake submissions will be rejected and may result in account suspension.';
+    instructionElement.textContent = '⚠️ Complete all steps honestly. Fake submissions will be rejected and may result in account suspension.';
   }
 
   // Display timer warning if exists
@@ -100,32 +105,14 @@ function displayTaskDetails() {
     timerWarning.style.display = 'flex';
     timerSeconds.textContent = currentTask.timeLimit;
   } else {
-    // Hide timer warning if no time limit
+    // Hide timer warning if no time limit and element exists
     const timerWarning = document.getElementById('timerWarning');
     if (timerWarning) timerWarning.style.display = 'none';
-  }
-
-  // Update likes count if element exists
-  const taskLikes = document.getElementById('taskLikes');
-  if (taskLikes) {
-    taskLikes.textContent = currentTask.likes || 0;
-  }
-
-  // Show/hide thumbnail if it exists
-  const taskThumbnail = document.getElementById('taskThumbnail');
-  if (taskThumbnail) {
-    if (currentTask.thumbnail) {
-      taskThumbnail.src = currentTask.thumbnail;
-      taskThumbnail.style.display = 'block';
-    } else {
-      taskThumbnail.style.display = 'none';
-    }
   }
 }
 
 // Check task status for current user
 async function checkTaskStatus() {
-  const userData = await getData(`USERS/${currentUser.uid}`); // Fetch user data for more checks if needed
   const completedTasks = currentTask.completedBy || [];
 
   // Check if already completed
@@ -153,107 +140,96 @@ async function checkTaskStatus() {
 
 // Show completed status
 function showCompletedStatus() {
-  const submitBtn = document.getElementById('submitTaskBtn');
-  const visitBtn = document.getElementById('visitTaskBtn'); // Assuming visitBtn exists
-  const likeBtn = document.getElementById('likeTaskBtn'); // Assuming likeBtn exists
+  const submitBtn = document.getElementById('submitBtn');
+  const visitBtn = document.getElementById('visitBtn');
 
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-check-circle"></i> Task Completed';
-    submitBtn.style.background = '#22c55e';
+    submitBtn.innerHTML = '<i class="fas fa-check-circle"></i><span>Task Completed</span>';
+    submitBtn.style.background = 'linear-gradient(135deg, #22c55e, #16a34a)';
   }
 
   if (visitBtn) {
     visitBtn.disabled = true;
-  }
-
-  if (likeBtn) {
-    likeBtn.disabled = true; // Disable like button if task is completed
+    visitBtn.style.opacity = '0.5';
   }
 }
 
 // Show pending status
 function showPendingStatus() {
-  const submitBtn = document.getElementById('submitTaskBtn');
-  const visitBtn = document.getElementById('visitTaskBtn'); // Assuming visitBtn exists
+  const submitBtn = document.getElementById('submitBtn');
+  const visitBtn = document.getElementById('visitBtn');
 
   if (submitBtn) {
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<i class="fas fa-clock"></i> Under Review';
-    submitBtn.style.background = '#f59e0b';
+    submitBtn.innerHTML = '<i class="fas fa-clock"></i><span>Under Review</span>';
+    submitBtn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
   }
 
   if (visitBtn) {
-    visitBtn.disabled = true; // Disable visit button while under review
+    visitBtn.disabled = true;
+    visitBtn.style.opacity = '0.5';
   }
 }
 
 // Show available status
 function showAvailableStatus() {
-  const submitBtn = document.getElementById('submitTaskBtn');
-  const visitBtn = document.getElementById('visitTaskBtn'); // Assuming visitBtn exists
-  const likeBtn = document.getElementById('likeTaskBtn'); // Assuming likeBtn exists
+  const submitBtn = document.getElementById('submitBtn');
+  const visitBtn = document.getElementById('visitBtn');
 
   if (submitBtn) {
     submitBtn.disabled = false;
-    submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit for Review';
+    submitBtn.innerHTML = '<i class="fas fa-check-circle"></i><span>Submit Task</span>';
   }
 
   if (visitBtn) {
     visitBtn.disabled = false;
-  }
-
-  // Check if user has already liked the task to set like button state
-  if (currentUser && currentTask && currentTask.likesData && currentTask.likesData[currentUser.uid]) {
-    if (likeBtn) {
-      likeBtn.disabled = true;
-      likeBtn.innerHTML = '<i class="fas fa-heart"></i> Liked';
-    }
-  } else if (likeBtn) {
-    likeBtn.disabled = false;
-    likeBtn.innerHTML = '<i class="far fa-heart"></i> Like';
+    visitBtn.style.opacity = '1';
   }
 }
 
 // Setup task actions
 function setupTaskActions() {
-  const visitBtn = document.getElementById('visitTaskBtn');
-  const submitBtn = document.getElementById('submitTaskBtn');
-  const likeBtn = document.getElementById('likeTaskBtn');
+  const visitBtn = document.getElementById('visitBtn');
+  const submitBtn = document.getElementById('submitBtn');
 
   if (visitBtn) {
-    visitBtn.addEventListener('click', () => {
-      if (currentTask.url) {
-        window.open(currentTask.url, '_blank');
-      } else {
-        showToast('Task link not available', 'error');
-      }
-    });
+    visitBtn.addEventListener('click', handleVisitTask);
   }
 
   if (submitBtn) {
     submitBtn.addEventListener('click', handleTaskSubmission);
   }
+}
 
-  if (likeBtn) {
-    likeBtn.addEventListener('click', handleTaskLike);
+// Handle visit task - redirect to task URL
+function handleVisitTask() {
+  if (!currentTask.url) {
+    showToast('Task URL not available', 'error');
+    return;
   }
+
+  // Open task URL in new tab
+  window.open(currentTask.url, '_blank');
+  showToast('Complete the task and return to submit', 'info');
 }
 
 // Handle task submission
 async function handleTaskSubmission() {
-  const submitBtn = document.getElementById('submitTaskBtn');
+  const submitBtn = document.getElementById('submitBtn');
 
   const confirmed = await showConfirm(
-    'Submit Task',
+    'Submit Task for Review',
     'Have you completed all the steps? Your submission will be reviewed by admin.',
-    'Submit',
+    'Yes, Submit',
     'Cancel'
   );
 
   if (!confirmed) return;
 
-  showLoading(submitBtn, 'Submitting...');
+  const originalHTML = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Submitting...</span>';
 
   try {
     // Create submission
@@ -261,7 +237,7 @@ async function handleTaskSubmission() {
       userId: currentUser.uid,
       taskId,
       taskTitle: currentTask.title,
-      taskPrice: currentTask.price, // Include price in submission data if relevant
+      taskPrice: currentTask.price,
       status: 'pending',
       submittedAt: getServerTimestamp()
     });
@@ -271,63 +247,22 @@ async function handleTaskSubmission() {
       return (current || 0) + 1;
     });
 
-    // Send notification
+    // Send notification to admin
     const userData = await getData(`USERS/${currentUser.uid}`);
     const userName = userData.personalInfo?.name || 'User';
-    const userEmail = userData.personalInfo?.email || '';
+    const userEmail = userData.personalInfo?.email || 'N/A';
+
     await notifyTaskSubmission(userName, userEmail, currentTask.title, taskId);
 
-    showToast('Task submitted successfully! Wait for admin approval.', 'success');
+    showToast('✅ Task submitted! Wait for admin approval.', 'success');
 
     // Reload status
     await checkTaskStatus();
 
   } catch (error) {
     console.error('Submission error:', error);
-    showToast('Error submitting task', 'error');
-  } finally {
-    hideLoading(submitBtn);
-  }
-}
-
-// Handle task like
-async function handleTaskLike() {
-  const likeBtn = document.getElementById('likeTaskBtn');
-
-  try {
-    // Check if already liked using a more robust method if available
-    // Assuming currentTask.likesData is an object where keys are user IDs
-    if (currentTask.likesData && currentTask.likesData[currentUser.uid]) {
-      showToast('You already liked this task', 'info');
-      return;
-    }
-
-    // Add like to task
-    await runDbTransaction(`TASKS/${taskId}/likes`, (current) => {
-      return (current || 0) + 1;
-    });
-
-    // Update task likes data with user ID
-    const likesDataUpdate = {};
-    likesDataUpdate[currentUser.uid] = true; // Mark as liked
-    await updateData(`TASKS/${taskId}/likesData`, likesDataUpdate);
-
-
-    showToast('Task liked!', 'success');
-
-    // Update UI
-    const taskLikes = document.getElementById('taskLikes');
-    if (taskLikes) {
-      taskLikes.textContent = parseInt(taskLikes.textContent) + 1;
-    }
-
-    if (likeBtn) {
-      likeBtn.disabled = true;
-      likeBtn.innerHTML = '<i class="fas fa-heart"></i> Liked';
-    }
-
-  } catch (error) {
-    console.error('Like error:', error);
-    showToast('Error liking task', 'error');
+    showToast('❌ Error submitting task. Please try again.', 'error');
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalHTML;
   }
 }

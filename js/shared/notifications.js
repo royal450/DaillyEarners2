@@ -45,13 +45,15 @@ ${userData.uplineCode ? `👥 <b>Referred By:</b> ${userData.uplineCode}` : ''}
 // Notify task submission
 export async function notifyTaskSubmission(userName, userEmail, taskTitle, taskId) {
   const message = `
-📝 <b>TASK SUBMITTED FOR REVIEW</b>
+🔔 <b>TASK SUBMITTED FOR REVIEW</b>
 
-👤 <b>User:</b> ${userName}
+👤 <b>User Name:</b> ${userName}
 📧 <b>Email:</b> ${userEmail}
-📋 <b>Task:</b> ${taskTitle}
+📋 <b>Task Title:</b> ${taskTitle}
 🆔 <b>Task ID:</b> ${taskId}
-⏰ <b>Time:</b> ${new Date().toLocaleString('en-IN')}
+⏰ <b>Submitted At:</b> ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}
+
+✅ Please review and approve/reject in admin panel
   `.trim();
   
   await sendTelegramNotification(message);

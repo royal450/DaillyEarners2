@@ -55,15 +55,22 @@ function displayPendingTasks(tasks) {
           <div style="font-size: 12px; color: var(--text-color); opacity: 0.7;">
             <i class="fas fa-clock"></i> ${formatDateTime(task.submittedAt)}
           </div>
+          ${task.taskPrice ? `
+            <div style="font-size: 13px; font-weight: 700; color: #10b981; margin-top: 4px;">
+              <i class="fas fa-coins"></i> ₹${task.taskPrice}
+            </div>
+          ` : ''}
         </div>
-        <div style="padding: 4px 12px; border-radius: 12px; background: ${getStatusColor(task.status)}; color: white; font-size: 11px; font-weight: 600;">
-          ${task.status.toUpperCase()}
+        <div style="padding: 6px 14px; border-radius: 12px; background: ${getStatusColor(task.status)}; color: white; font-size: 11px; font-weight: 700; text-transform: uppercase;">
+          ${task.status}
         </div>
       </div>
       ${task.adminFeedback ? `
-        <div style="padding: 12px; background: ${task.status === 'approved' ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)'}; border-radius: 8px; border: 1px solid ${task.status === 'approved' ? '#22c55e' : '#ef4444'}; margin-top: 8px;">
-          <div style="font-size: 11px; font-weight: 600; color: var(--text-color); opacity: 0.7; margin-bottom: 4px;">Admin Feedback:</div>
-          <div style="font-size: 13px; color: var(--text-color);">${task.adminFeedback}</div>
+        <div style="padding: 12px; background: ${task.status === 'approved' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)'}; border-radius: 8px; border: 1px solid ${task.status === 'approved' ? '#22c55e' : '#ef4444'}; margin-top: 8px;">
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-color); opacity: 0.8; margin-bottom: 6px;">
+            <i class="fas fa-${task.status === 'approved' ? 'check-circle' : 'times-circle'}"></i> Admin Feedback:
+          </div>
+          <div style="font-size: 14px; font-weight: 600; color: var(--text-color);">${task.adminFeedback}</div>
         </div>
       ` : ''}
     </div>

@@ -302,7 +302,7 @@ window.showAddTaskModal = async function() {
       '<input id="taskTitle" class="swal2-input" placeholder="Title" style="margin-bottom: 10px;">' +
       '<textarea id="taskDesc" class="swal2-input" placeholder="Description" style="height: 80px; margin-bottom: 10px;"></textarea>' +
       '<input id="taskPrice" class="swal2-input" type="number" placeholder="Price (₹)" style="margin-bottom: 10px;">' +
-      '<input id="taskUrl" class="swal2-input" placeholder="Task URL" style="margin-bottom: 10px;">' +
+      '<input id="taskUrl" class="swal2-input" placeholder="Task URL (permanent link)" style="margin-bottom: 10px;">' +
       '<textarea id="taskSteps" class="swal2-input" placeholder="Steps (one per line)" style="height: 100px; margin-bottom: 10px;"></textarea>' +
       '<textarea id="taskInstructions" class="swal2-input" placeholder="Important Instructions" style="height: 80px; margin-bottom: 10px;"></textarea>' +
       '<input id="taskTimeLimit" class="swal2-input" type="number" placeholder="Time Limit (seconds) - optional" style="margin-bottom: 10px;">',
@@ -323,13 +323,21 @@ window.showAddTaskModal = async function() {
         return false;
       }
       
+      // Validate URL format
+      try {
+        new URL(url);
+      } catch (e) {
+        Swal.showValidationMessage('Please enter a valid URL');
+        return false;
+      }
+      
       const steps = stepsText ? stepsText.split('\n').filter(s => s.trim()) : [];
       
       return {
         title,
         description,
         price: parseFloat(price),
-        url,
+        url, // Permanently stored in database
         steps,
         instructions: instructions || 'Complete all steps honestly. Fake submissions will be rejected.',
         timeLimit: timeLimit ? parseInt(timeLimit) : null
@@ -343,6 +351,7 @@ window.showAddTaskModal = async function() {
       ...formValues,
       status: 'active',
       likes: 0,
+      likesData: {},
       completedBy: [],
       createdAt: Date.now()
     });
@@ -379,14 +388,20 @@ async function loadPendingTasksView() {
   
   const pending = Object.entries(allPending)
     .filter(([_, task]) => task.status === 'pending')
-    .map(([id, task]) => ({ id, ...task }));
+    .map(([id, task]) => ({ id, ...task }))
+    .sort((a, b) => (b.submittedAt || 0) - (a.submittedAt || 0));
+  
+  if (pending.length === 0) {
+    container.innerHTML = '<p>No pending tasks</p>';
+    return;
+  }
   
   container.innerHTML = `
     <table>
       <thead>
         <tr>
           <th>Task</th>
-          <th>User</th>
+          <th>User Details</th>
           <th>Submitted</th>
           <th>Actions</th>
         </tr>
@@ -397,8 +412,15 @@ async function loadPendingTasksView() {
           const taskData = await getData(`TASKS/${task.taskId}`);
           return `
             <tr>
-              <td>${task.taskTitle || 'Task'}</td>
-              <td>${userData?.personalInfo?.name || 'User'}</td>
+              <td>
+                <strong>${task.taskTitle || 'Task'}</strong><br>
+                <small style="opacity: 0.7;">Price: ${formatCurrency(taskData?.price || 0)}</small>
+              </td>
+              <td>
+                <strong>${userData?.personalInfo?.name || 'User'}</strong><br>
+                <small style="opacity: 0.7;">${userData?.personalInfo?.email || 'N/A'}</small><br>
+                <small style="opacity: 0.7;">${userData?.personalInfo?.phone || 'N/A'}</small>
+              </td>
               <td>${formatDateTime(task.submittedAt)}</td>
               <td>
                 <button class="btn btn-success" onclick="window.approveTask('${task.id}', '${task.userId}', '${task.taskId}', ${taskData?.price || 0})">Approve</button>
@@ -417,7 +439,11 @@ async function loadPendingTasksView() {
 
 async function approveTask(submissionId, userId, taskId, price) {
   await updateBalance(userId, price, `Task completion: ${taskId}`);
-  await updateData(`PENDING_TASKS/${submissionId}`, { status: 'approved', reviewedAt: getServerTimestamp() });
+  await updateData(`PENDING_TASKS/${submissionId}`, { 
+    status: 'approved', 
+    adminFeedback: '✅ APPROVED BY ADMIN',
+    reviewedAt: getServerTimestamp() 
+  });
   await runDbTransaction(`USERS/${userId}/taskHistory/pending`, (current) => Math.max(0, (current || 0) - 1));
   await runDbTransaction(`USERS/${userId}/taskHistory/completed`, (current) => (current || 0) + 1);
   
@@ -438,7 +464,7 @@ async function approveTask(submissionId, userId, taskId, price) {
     await updateBalance(userData.personalInfo.referrerId, 10, 'Referral first task bonus');
   }
   
-  showToast('Task approved!', 'success');
+  showToast('Task approved! User has been credited.', 'success');
   loadView('pending');
 }
 
