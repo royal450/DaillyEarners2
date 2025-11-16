@@ -152,6 +152,7 @@ async function loadTaskDetails() {
 // Display task details
 function displayTaskDetails() {
   console.log('Displaying task details:', currentTask);
+  console.log('Full task object:', JSON.stringify(currentTask, null, 2));
 
   // Show task reward (price)
   const taskRewardElement = document.getElementById('taskReward');
@@ -175,14 +176,28 @@ function displayTaskDetails() {
     console.log('Task description set');
   }
 
-  // Display steps
+  // Display steps - Check multiple possible fields
   const stepsContainer = document.getElementById('stepsContainer');
   if (stepsContainer) {
-    console.log('Steps data:', currentTask.steps);
+    console.log('Steps data from currentTask.steps:', currentTask.steps);
+    console.log('Steps data from currentTask.taskSteps:', currentTask.taskSteps);
     
+    // Try to get steps from different possible fields
+    let steps = null;
     if (currentTask.steps && Array.isArray(currentTask.steps) && currentTask.steps.length > 0) {
-      console.log('Rendering custom steps:', currentTask.steps.length);
-      stepsContainer.innerHTML = currentTask.steps.map((step, index) => `
+      steps = currentTask.steps;
+    } else if (currentTask.taskSteps && Array.isArray(currentTask.taskSteps) && currentTask.taskSteps.length > 0) {
+      steps = currentTask.taskSteps;
+    } else if (typeof currentTask.steps === 'string' && currentTask.steps.trim() !== '') {
+      // If steps is a string, split by newline
+      steps = currentTask.steps.split('\n').filter(s => s.trim() !== '');
+    } else if (typeof currentTask.taskSteps === 'string' && currentTask.taskSteps.trim() !== '') {
+      steps = currentTask.taskSteps.split('\n').filter(s => s.trim() !== '');
+    }
+    
+    if (steps && steps.length > 0) {
+      console.log('Rendering custom steps:', steps.length, steps);
+      stepsContainer.innerHTML = steps.map((step, index) => `
         <div class="step-item">
           <div class="step-number">${index + 1}</div>
           <div class="step-content">
@@ -191,7 +206,7 @@ function displayTaskDetails() {
         </div>
       `).join('');
     } else {
-      console.log('No steps found, using default steps');
+      console.log('No steps found in database, using default steps');
       stepsContainer.innerHTML = `
         <div class="step-item">
           <div class="step-number">1</div>
@@ -215,15 +230,22 @@ function displayTaskDetails() {
     }
   }
 
-  // Display instructions
+  // Display instructions - Check multiple possible fields
   const instructionElement = document.getElementById('taskInstruction');
   if (instructionElement) {
-    console.log('Instructions data:', currentTask.instructions);
+    console.log('Instructions from currentTask.instructions:', currentTask.instructions);
+    console.log('Instructions from currentTask.taskInstructions:', currentTask.taskInstructions);
+    console.log('Instructions from currentTask.importantNote:', currentTask.importantNote);
     
-    if (currentTask.instructions) {
-      instructionElement.textContent = currentTask.instructions;
+    // Try to get instructions from different possible fields
+    let instructions = currentTask.instructions || currentTask.taskInstructions || currentTask.importantNote || null;
+    
+    if (instructions && instructions.trim() !== '') {
+      instructionElement.textContent = instructions;
+      console.log('Instructions set to:', instructions);
     } else {
       instructionElement.textContent = '⚠️ Complete all steps honestly. Fake submissions will be rejected and may result in account suspension.';
+      console.log('Using default instructions');
     }
   }
 
