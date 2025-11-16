@@ -299,17 +299,40 @@ window.showAddTaskModal = async function() {
   const { value: formValues } = await Swal.fire({
     title: 'Add New Task',
     html:
-      '<input id="taskTitle" class="swal2-input" placeholder="Title">' +
-      '<input id="taskDesc" class="swal2-input" placeholder="Description">' +
-      '<input id="taskPrice" class="swal2-input" type="number" placeholder="Price">' +
-      '<input id="taskUrl" class="swal2-input" placeholder="URL">',
+      '<input id="taskTitle" class="swal2-input" placeholder="Title" style="margin-bottom: 10px;">' +
+      '<textarea id="taskDesc" class="swal2-input" placeholder="Description" style="height: 80px; margin-bottom: 10px;"></textarea>' +
+      '<input id="taskPrice" class="swal2-input" type="number" placeholder="Price (₹)" style="margin-bottom: 10px;">' +
+      '<input id="taskUrl" class="swal2-input" placeholder="Task URL" style="margin-bottom: 10px;">' +
+      '<textarea id="taskSteps" class="swal2-input" placeholder="Steps (one per line)" style="height: 100px; margin-bottom: 10px;"></textarea>' +
+      '<textarea id="taskInstructions" class="swal2-input" placeholder="Important Instructions" style="height: 80px; margin-bottom: 10px;"></textarea>' +
+      '<input id="taskTimeLimit" class="swal2-input" type="number" placeholder="Time Limit (seconds) - optional" style="margin-bottom: 10px;">',
+    width: '600px',
     focusConfirm: false,
+    showCancelButton: true,
     preConfirm: () => {
+      const title = document.getElementById('taskTitle').value;
+      const description = document.getElementById('taskDesc').value;
+      const price = document.getElementById('taskPrice').value;
+      const url = document.getElementById('taskUrl').value;
+      const stepsText = document.getElementById('taskSteps').value;
+      const instructions = document.getElementById('taskInstructions').value;
+      const timeLimit = document.getElementById('taskTimeLimit').value;
+      
+      if (!title || !description || !price || !url) {
+        Swal.showValidationMessage('Please fill all required fields');
+        return false;
+      }
+      
+      const steps = stepsText ? stepsText.split('\n').filter(s => s.trim()) : [];
+      
       return {
-        title: document.getElementById('taskTitle').value,
-        description: document.getElementById('taskDesc').value,
-        price: parseFloat(document.getElementById('taskPrice').value),
-        url: document.getElementById('taskUrl').value
+        title,
+        description,
+        price: parseFloat(price),
+        url,
+        steps,
+        instructions: instructions || 'Complete all steps honestly. Fake submissions will be rejected.',
+        timeLimit: timeLimit ? parseInt(timeLimit) : null
       };
     }
   });
@@ -323,7 +346,7 @@ window.showAddTaskModal = async function() {
       completedBy: [],
       createdAt: Date.now()
     });
-    showToast('Task created!', 'success');
+    showToast('Task created successfully!', 'success');
     loadView('tasks');
   }
 };
@@ -398,8 +421,20 @@ async function approveTask(submissionId, userId, taskId, price) {
   await runDbTransaction(`USERS/${userId}/taskHistory/pending`, (current) => Math.max(0, (current || 0) - 1));
   await runDbTransaction(`USERS/${userId}/taskHistory/completed`, (current) => (current || 0) + 1);
   
+  // Add user to task's completedBy list
+  await runDbTransaction(`TASKS/${taskId}/completedBy`, (current) => {
+    const list = current || [];
+    if (!list.includes(userId)) {
+      list.push(userId);
+    }
+    return list;
+  });
+  
+  // Check for referral bonus
   const userData = await getData(`USERS/${userId}`);
-  if (userData.taskHistory?.completed === 0 && userData.personalInfo?.referrerId) {
+  const completedBefore = (userData.taskHistory?.completed || 0) - 1;
+  
+  if (completedBefore === 0 && userData.personalInfo?.referrerId) {
     await updateBalance(userData.personalInfo.referrerId, 10, 'Referral first task bonus');
   }
   

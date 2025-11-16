@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -24,6 +25,7 @@
       color: var(--text-color);
       min-height: 100vh;
       padding-bottom: 150px;
+      visibility: hidden;
     }
 
     .top-bar {
@@ -49,6 +51,12 @@
       text-decoration: none;
       font-weight: 700;
       font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    .back-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.4);
     }
 
     .container {
@@ -57,7 +65,6 @@
       padding: 20px 20px 80px 20px;
     }
 
-    /* Reward Header */
     .reward-header {
       background: linear-gradient(135deg, #10b981 0%, #059669 100%);
       border-radius: 20px;
@@ -81,7 +88,6 @@
       font-weight: 600;
     }
 
-    /* Task Title */
     .task-title-card {
       background: var(--card-bg);
       border-radius: 20px;
@@ -103,7 +109,6 @@
       opacity: 0.8;
     }
 
-    /* How to Complete Section */
     .section-header {
       display: flex;
       align-items: center;
@@ -118,7 +123,6 @@
       font-size: 28px;
     }
 
-    /* Steps */
     .steps-container {
       margin-bottom: 30px;
     }
@@ -166,7 +170,6 @@
       line-height: 1.5;
     }
 
-    /* Timer Warning */
     .timer-warning {
       background: linear-gradient(135deg, #f59e0b, #d97706);
       border-radius: 16px;
@@ -199,7 +202,6 @@
       opacity: 0.9;
     }
 
-    /* Important Note */
     .important-note {
       background: rgba(239, 68, 68, 0.1);
       border: 2px solid #ef4444;
@@ -224,7 +226,6 @@
       opacity: 0.9;
     }
 
-    /* Action Buttons */
     .action-buttons {
       position: fixed;
       bottom: 0;
@@ -280,6 +281,11 @@
       box-shadow: 0 12px 30px rgba(16, 185, 129, 0.5);
     }
 
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     @media (max-width: 768px) {
       .reward-amount {
         font-size: 42px;
@@ -317,19 +323,16 @@
   </div>
 
   <div class="container">
-    <!-- Reward Header -->
     <div class="reward-header">
       <div class="reward-amount">₹<span id="taskReward">0</span></div>
       <div class="reward-label">🎁 Earn karo is task ko complete karke!</div>
     </div>
 
-    <!-- Task Title & Description -->
     <div class="task-title-card">
       <h1 class="task-title" id="taskTitle">Loading...</h1>
       <p class="task-description" id="taskDescription">Loading...</p>
     </div>
 
-    <!-- Timer Warning (if applicable) -->
     <div class="timer-warning" id="timerWarning" style="display: none;">
       <i class="fas fa-stopwatch"></i>
       <div class="timer-warning-text">
@@ -338,17 +341,20 @@
       </div>
     </div>
 
-    <!-- How to Complete Section -->
     <h2 class="section-header">
       <i class="fas fa-clipboard-check"></i>
       Kaise Complete Kare?
     </h2>
 
     <div class="steps-container" id="stepsContainer">
-      <!-- Steps will be inserted here -->
+      <div class="step-item">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <div class="step-text">Loading steps...</div>
+        </div>
+      </div>
     </div>
 
-    <!-- Important Note -->
     <div class="important-note">
       <h4>
         <i class="fas fa-exclamation-triangle"></i>
@@ -358,7 +364,6 @@
     </div>
   </div>
 
-  <!-- Action Buttons -->
   <div class="action-buttons">
     <button class="btn btn-visit" id="visitBtn">
       <i class="fas fa-external-link-alt"></i>
@@ -369,7 +374,6 @@
       <span>Submit Task</span>
     </button>
   </div>
-
 
   <script type="module" src="js/pages/task-detail.js"></script>
 </body>
