@@ -297,7 +297,7 @@ async function handleTaskSubmission() {
     });
 
     // Update user's task history
-    await runDbTransaction(`USERS/${currentUser.uid}/taskHistory/pending`, (current) => Math.max((current || 0) - 1, 0));
+    await runDbTransaction(`USERS/${currentUser.uid}/taskHistory/pending`, (current) => (current || 0) + 1);
     await runDbTransaction(`USERS/${currentUser.uid}/taskHistory/completed`, (current) => (current || 0) + 1);
 
     // Check if this is user's first completed task and give referrer bonus
