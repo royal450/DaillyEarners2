@@ -1,12 +1,36 @@
 // Signup Page Logic
 import { auth } from '../shared/firebase-config.js';
 import { createUserWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-import { setData, getData, runDbTransaction } from '../shared/db.js';
+import { setData, getData, runDbTransaction, updateBalance } from '../shared/db.js';
 import { generateReferralCode, showToast, showLoading, hideLoading } from '../shared/utils.js';
 import { redirectIfAuthenticated } from '../shared/auth-guard.js';
 
 // Check if user is already logged in
 redirectIfAuthenticated('dashboard.html');
+
+// Auto-apply referral code from URL
+document.addEventListener('DOMContentLoaded', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const refCode = urlParams.get('ref');
+  
+  if (refCode) {
+    const inviteCodeInput = document.getElementById('inviteCode');
+    const bonusMessage = document.getElementById('bonusMessage');
+    
+    inviteCodeInput.value = refCode;
+    inviteCodeInput.disabled = true;
+    inviteCodeInput.style.opacity = '0.7';
+    inviteCodeInput.style.cursor = 'not-allowed';
+    inviteCodeInput.style.background = 'linear-gradient(135deg, rgba(16,185,129,0.1), rgba(5,150,105,0.1))';
+    inviteCodeInput.style.borderColor = '#10b981';
+    
+    // Show bonus message
+    if (bonusMessage) {
+      bonusMessage.style.display = 'block';
+    }
+    showToast('🎉 Yeah! You got ₹5 instantly on signup!', 'success');
+  }
+});
 
 // Theme Toggle
 function initThemeToggle() {
@@ -107,8 +131,18 @@ signupForm.addEventListener('submit', async (e) => {
 
         if (referrerId) {
           userData.personalInfo.referrerId = referrerId;
+          userData.personalInfo.hasReceivedSignupBonus = false; // Track if signup bonus given to referrer
+          
           // Increment referrer's count
           await runDbTransaction(`USERS/${referrerId}/referrals/count`, (current) => (current || 0) + 1);
+          
+          // Give ₹5 signup bonus to referrer
+          await updateBalance(referrerId, 5, 'Referral signup bonus');
+          await runDbTransaction(`USERS/${referrerId}/referrals/earnings`, (current) => (current || 0) + 5);
+          
+          // Mark that signup bonus has been given
+          await setData(`USERS/${user.uid}/personalInfo/hasReceivedSignupBonus`, true);
+          
         } else {
           showToast('Invalid referral code', 'warning');
         }

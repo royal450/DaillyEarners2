@@ -1,6 +1,6 @@
 // Task Detail Page Logic
 import { auth } from '../shared/firebase-config.js';
-import { getData, pushData, updateData, getServerTimestamp, runDbTransaction } from '../shared/db.js';
+import { getData, pushData, updateData, getServerTimestamp, runDbTransaction, setData } from '../shared/db.js';
 import { formatCurrency, showToast, showConfirm, getQueryParam, redirectTo, showLoading, hideLoading } from '../shared/utils.js';
 import { initAuthGuard } from '../shared/auth-guard.js';
 import { notifyTaskSubmission } from '../shared/notifications.js';
@@ -9,9 +9,20 @@ let currentUser = null;
 let currentTask = null;
 let taskId = null;
 
+// Helper function to update user balance
+async function updateBalance(userId, amount, description) {
+  await runDbTransaction(`USERS/${userId}/balance`, (current) => (current || 0) + amount);
+  await pushData(`USERS/${userId}/transactions`, {
+    amount,
+    description,
+    timestamp: getServerTimestamp()
+  });
+}
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', async function() {
   taskId = getQueryParam('id');
+  const referralCode = getQueryParam('ref');
 
   if (!taskId) {
     showToast('Invalid task ID', 'error');
@@ -19,15 +30,158 @@ document.addEventListener('DOMContentLoaded', async function() {
     return;
   }
 
-  currentUser = await initAuthGuard(onUserAuthenticated);
+  // Initialize auth guard, and if authenticated, load task details
+  // If not authenticated, check for referral code and show signup form
+  currentUser = await initAuthGuard(onUserAuthenticated, onUserNotAuthenticated);
+
+  // If user is not authenticated and a referral code is present, populate signup form
+  if (!currentUser && referralCode) {
+    document.getElementById('referralCodeInput').value = referralCode;
+    document.getElementById('referralCodeInput').disabled = true;
+    document.getElementById('referralCodeField').style.display = 'block'; // Make referral code field visible
+    document.getElementById('referralBonusMessage').style.display = 'block'; // Show bonus message
+    document.getElementById('signupForm').style.display = 'block'; // Show signup form
+    document.getElementById('loginForm').style.display = 'none'; // Hide login form
+    document.getElementById('taskDetailContainer').style.display = 'none'; // Hide task details until logged in
+    document.getElementById('authContainer').style.display = 'block'; // Show auth container
+
+    // Set signup bonus message
+    document.getElementById('signupBonusText').textContent = 'Yeah! You got 5rs instantly';
+
+    // Add event listener for signup form submission
+    document.getElementById('signupForm').addEventListener('submit', handleSignup);
+  } else if (!currentUser) {
+    // If not authenticated and no referral code, show login form
+    document.getElementById('loginForm').style.display = 'block';
+    document.getElementById('signupForm').style.display = 'none';
+    document.getElementById('taskDetailContainer').style.display = 'none';
+    document.getElementById('authContainer').style.display = 'block';
+  }
 });
 
 async function onUserAuthenticated(user) {
   currentUser = user;
+  document.getElementById('authContainer').style.display = 'none';
+  document.getElementById('taskDetailContainer').style.display = 'block';
   document.body.style.visibility = 'visible';
 
   await loadTaskDetails();
   setupTaskActions();
+
+  // Check if the user has a referral code from the URL and apply it
+  const referralCodeFromUrl = getQueryParam('ref');
+  if (referralCodeFromUrl) {
+    const referrerData = await getData(`USERS_BY_REFERRAL_CODE/${referralCodeFromUrl}`);
+    if (referrerData && referrerData.userId) {
+      await runDbTransaction(`USERS/${currentUser.uid}/personalInfo`, (current) => {
+        return {
+          ...(current || {}),
+          referrerId: referrerData.userId,
+          hasReceivedSignupBonus: false // Initialize signup bonus status
+        };
+      });
+      // Apply signup bonus
+      await updateBalance(currentUser.uid, 5, 'Signup bonus');
+      await setData(`USERS/${currentUser.uid}/personalInfo/hasReceivedSignupBonus`, true);
+      showToast('Yeah! You got 5rs instantly', 'success');
+    }
+  }
+}
+
+function onUserNotAuthenticated() {
+  document.getElementById('authContainer').style.display = 'block';
+  document.getElementById('taskDetailContainer').style.display = 'none';
+  document.body.style.visibility = 'visible';
+}
+
+// Handle signup form submission
+async function handleSignup(event) {
+  event.preventDefault();
+  showLoading('Creating account...');
+
+  const email = document.getElementById('signupEmail').value;
+  const password = document.getElementById('signupPassword').value;
+  const referralCodeInput = document.getElementById('referralCodeInput');
+  const referralCode = referralCodeInput.value;
+
+  try {
+    // Attempt to create user with email and password
+    const newUserCredential = await auth.createUserWithEmailAndPassword(email, password);
+    const newUser = newUserCredential.user;
+
+    // Get referrer's userId if referral code is provided
+    let referrerUserId = null;
+    if (referralCode) {
+      const referrerData = await getData(`USERS_BY_REFERRAL_CODE/${referralCode}`);
+      if (referrerData && referrerData.userId) {
+        referrerUserId = referrerData.userId;
+      } else {
+        throw new Error('Invalid referral code.');
+      }
+    }
+
+    // Create user profile in database
+    await pushData('USERS', {
+      uid: newUser.uid,
+      email: newUser.email,
+      createdAt: getServerTimestamp(),
+      balance: 5, // Signup bonus
+      personalInfo: {
+        name: email.split('@')[0], // Default name
+        referrerId: referrerUserId,
+        hasReceivedSignupBonus: true,
+        hasReceivedFirstTaskBonus: false // Initialize first task bonus status
+      },
+      referralCode: generateReferralCode(), // Generate unique referral code for the new user
+      taskHistory: {
+        pending: 0,
+        completed: 0
+      },
+      transactions: [{
+        amount: 5,
+        description: 'Signup bonus',
+        timestamp: getServerTimestamp()
+      }]
+    });
+
+    // Update user's referral code lookup
+    await setData(`USERS_BY_REFERRAL_CODE/${await getReferralCodeForUser(newUser.uid)}`, { userId: newUser.uid });
+
+
+    // If referrer exists, update their referral count and earnings
+    if (referrerUserId) {
+      await runDbTransaction(`USERS/${referrerUserId}/referrals/count`, (current) => (current || 0) + 1);
+      await runDbTransaction(`USERS/${referrerUserId}/referrals/earnings`, (current) => (current || 0) + 5); // Signup bonus for referrer
+    }
+
+    showToast('✅ Account created successfully! You got 5rs instantly.', 'success');
+    hideLoading();
+    // Automatically log in the user
+    await auth.signInWithEmailAndPassword(email, password);
+    currentUser = auth.currentUser;
+    onUserAuthenticated(currentUser); // Manually call authenticated handler
+
+  } catch (error) {
+    console.error('Signup error:', error);
+    showToast(`❌ ${error.message}`, 'error');
+    hideLoading();
+  }
+}
+
+// Generate a unique referral code for a user
+function generateReferralCode() {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return code;
+}
+
+// Get referral code for a user (assuming it's stored in the user's profile)
+async function getReferralCodeForUser(userId) {
+  const userData = await getData(`USERS/${userId}`);
+  return userData?.referralCode;
 }
 
 // Load task details
@@ -242,13 +396,26 @@ async function handleTaskSubmission() {
       submittedAt: getServerTimestamp()
     });
 
-    // Update user task history
-    await runDbTransaction(`USERS/${currentUser.uid}/taskHistory/pending`, (current) => {
-      return (current || 0) + 1;
-    });
+    // Update user's task history
+    await runDbTransaction(`USERS/${currentUser.uid}/taskHistory/pending`, (current) => Math.max((current || 0) - 1, 0));
+    await runDbTransaction(`USERS/${currentUser.uid}/taskHistory/completed`, (current) => (current || 0) + 1);
+
+    // Check if this is user's first completed task and give referrer bonus
+    const userData = await getData(`USERS/${currentUser.uid}`);
+    const completedTasks = userData?.taskHistory?.completed || 0;
+    const referrerId = userData?.personalInfo?.referrerId;
+    const hasReceivedFirstTaskBonus = userData?.personalInfo?.hasReceivedFirstTaskBonus;
+
+    if (completedTasks === 1 && referrerId && !hasReceivedFirstTaskBonus) {
+      // Give ₹10 first task completion bonus to referrer (only once)
+      await updateBalance(referrerId, 10, 'Referral first task completion bonus');
+      await runDbTransaction(`USERS/${referrerId}/referrals/earnings`, (current) => (current || 0) + 10);
+
+      // Mark that first task bonus has been given
+      await setData(`USERS/${currentUser.uid}/personalInfo/hasReceivedFirstTaskBonus`, true);
+    }
 
     // Send notification to admin
-    const userData = await getData(`USERS/${currentUser.uid}`);
     const userName = userData.personalInfo?.name || 'User';
     const userEmail = userData.personalInfo?.email || 'N/A';
 

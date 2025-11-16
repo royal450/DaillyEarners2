@@ -123,11 +123,14 @@ async function loadReferralStats() {
       // Check if this user was referred by current user
       if (referrerId && referrerId.toString() === currentUser.uid.toString()) {
         totalReferrals++;
-        totalEarnings += 5; // ₹5 per referral
-
-        // Check if referral completed first task (₹10 bonus)
-        const completedTasks = userData.taskHistory?.completed || 0;
-        if (completedTasks > 0) {
+        
+        // ₹5 signup bonus (given once)
+        if (userData.personalInfo?.hasReceivedSignupBonus) {
+          totalEarnings += 5;
+        }
+        
+        // ₹10 first task completion bonus (given once)
+        if (userData.personalInfo?.hasReceivedFirstTaskBonus) {
           totalEarnings += 10;
         }
       }
