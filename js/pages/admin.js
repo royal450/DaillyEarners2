@@ -297,95 +297,24 @@ async function loadTasksView() {
 
 window.showAddTaskModal = async function() {
   const { value: formValues } = await Swal.fire({
-    title: '<div style="font-size: 24px; font-weight: 800; background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; background-clip: text; color: transparent;">✨ Create New Task</div>',
+    title: 'Create New Task',
     html: `
-      <div style="text-align: left; max-width: 580px; margin: 0 auto;">
-        <!-- Task Title -->
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 12px; font-weight: 700; color: #6366f1; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-            <i class="fas fa-heading"></i> Task Title *
-          </label>
-          <input id="taskTitle" class="swal2-input" placeholder="Enter an attractive task title" 
-            style="width: 100%; margin: 0; padding: 12px; border-radius: 10px; border: 2px solid #e5e7eb; font-size: 14px; font-weight: 600;">
-        </div>
-        
-        <!-- Task Description -->
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 12px; font-weight: 700; color: #6366f1; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-            <i class="fas fa-align-left"></i> Description *
-          </label>
-          <textarea id="taskDesc" class="swal2-input" placeholder="Brief description of what users need to do" 
-            style="width: 100%; margin: 0; padding: 12px; height: 90px; border-radius: 10px; border: 2px solid #e5e7eb; resize: vertical; font-size: 14px;"></textarea>
-        </div>
-        
-        <!-- Price and URL Row -->
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px; margin-bottom: 16px;">
-          <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #10b981; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-              <i class="fas fa-coins"></i> Price (₹) *
-            </label>
-            <input id="taskPrice" class="swal2-input" type="number" placeholder="50" 
-              style="width: 100%; margin: 0; padding: 12px; border-radius: 10px; border: 2px solid #e5e7eb; font-size: 16px; font-weight: 800; color: #10b981;">
-          </div>
-          <div>
-            <label style="display: block; font-size: 12px; font-weight: 700; color: #6366f1; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-              <i class="fas fa-link"></i> Task URL *
-            </label>
-            <input id="taskUrl" class="swal2-input" placeholder="https://example.com/task" 
-              style="width: 100%; margin: 0; padding: 12px; border-radius: 10px; border: 2px solid #e5e7eb; font-size: 14px;">
-          </div>
-        </div>
-        
-        <!-- Thumbnail URL -->
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 12px; font-weight: 700; color: #8b5cf6; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-            <i class="fas fa-image"></i> Thumbnail Image URL (Optional)
-          </label>
-          <input id="taskThumbnail" class="swal2-input" placeholder="https://example.com/image.jpg" 
-            style="width: 100%; margin: 0; padding: 12px; border-radius: 10px; border: 2px solid #e5e7eb; font-size: 14px;">
-        </div>
-        
-        <!-- Steps -->
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 12px; font-weight: 700; color: #6366f1; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-            <i class="fas fa-list-ol"></i> Step-by-Step Instructions (One per line)
-          </label>
-          <textarea id="taskSteps" class="swal2-input" placeholder="Visit the website&#10;Complete the signup&#10;Take a screenshot&#10;Submit for review" 
-            style="width: 100%; margin: 0; padding: 12px; height: 110px; border-radius: 10px; border: 2px solid #e5e7eb; resize: vertical; font-size: 13px; line-height: 1.6;"></textarea>
-        </div>
-        
-        <!-- Important Instructions -->
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 12px; font-weight: 700; color: #f59e0b; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-            <i class="fas fa-exclamation-triangle"></i> Important Warnings/Instructions
-          </label>
-          <textarea id="taskInstructions" class="swal2-input" placeholder="Complete all steps honestly. Fake submissions will be rejected." 
-            style="width: 100%; margin: 0; padding: 12px; height: 80px; border-radius: 10px; border: 2px solid #fbbf24; resize: vertical; font-size: 13px;"></textarea>
-        </div>
-        
-        <!-- Time Limit -->
-        <div style="margin-bottom: 8px;">
-          <label style="display: block; font-size: 12px; font-weight: 700; color: #ef4444; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
-            <i class="fas fa-clock"></i> Time Limit (seconds - optional)
-          </label>
-          <input id="taskTimeLimit" class="swal2-input" type="number" placeholder="Leave empty for no time limit" 
-            style="width: 100%; margin: 0; padding: 12px; border-radius: 10px; border: 2px solid #e5e7eb; font-size: 14px;">
-        </div>
+      <div style="text-align: left;">
+        <input id="taskTitle" class="swal2-input" placeholder="Task Title *" style="margin: 5px 0;">
+        <textarea id="taskDesc" class="swal2-input" placeholder="Description *" style="margin: 5px 0; height: 60px;"></textarea>
+        <input id="taskPrice" class="swal2-input" type="number" placeholder="Price (₹) *" style="margin: 5px 0;">
+        <input id="taskUrl" class="swal2-input" placeholder="Task URL *" style="margin: 5px 0;">
+        <input id="taskThumbnail" class="swal2-input" placeholder="Thumbnail URL (optional)" style="margin: 5px 0;">
+        <textarea id="taskSteps" class="swal2-input" placeholder="Steps (one per line)" style="margin: 5px 0; height: 80px;"></textarea>
+        <textarea id="taskInstructions" class="swal2-input" placeholder="Important Instructions" style="margin: 5px 0; height: 60px;"></textarea>
+        <input id="taskTimeLimit" class="swal2-input" type="number" placeholder="Time Limit (seconds, optional)" style="margin: 5px 0;">
       </div>
     `,
-    width: '700px',
-    padding: '30px',
-    background: '#fafafa',
-    confirmButtonText: '<i class="fas fa-rocket"></i> Create Task',
+    confirmButtonText: 'Create Task',
     confirmButtonColor: '#6366f1',
     cancelButtonText: 'Cancel',
     showCancelButton: true,
     focusConfirm: false,
-    customClass: {
-      popup: 'modern-task-modal',
-      confirmButton: 'modern-confirm-btn',
-      cancelButton: 'modern-cancel-btn'
-    },
     preConfirm: () => {
       const title = document.getElementById('taskTitle').value.trim();
       const description = document.getElementById('taskDesc').value.trim();
@@ -397,31 +326,13 @@ window.showAddTaskModal = async function() {
       const timeLimit = document.getElementById('taskTimeLimit').value;
       
       if (!title || !description || !price || !url) {
-        Swal.showValidationMessage('⚠️ Please fill all required fields (marked with *)');
+        Swal.showValidationMessage('Please fill all required fields');
         return false;
       }
       
       if (parseFloat(price) <= 0) {
-        Swal.showValidationMessage('⚠️ Price must be greater than 0');
+        Swal.showValidationMessage('Price must be greater than 0');
         return false;
-      }
-      
-      // Validate URL format
-      try {
-        new URL(url);
-      } catch (e) {
-        Swal.showValidationMessage('⚠️ Please enter a valid URL (must start with http:// or https://)');
-        return false;
-      }
-      
-      // Validate thumbnail URL if provided
-      if (thumbnail) {
-        try {
-          new URL(thumbnail);
-        } catch (e) {
-          Swal.showValidationMessage('⚠️ Thumbnail must be a valid URL');
-          return false;
-        }
       }
       
       const steps = stepsText ? stepsText.split('\n').filter(s => s.trim()).map(s => s.trim()) : [];
@@ -433,17 +344,15 @@ window.showAddTaskModal = async function() {
         url,
         thumbnail: thumbnail || null,
         steps,
-        instructions: instructions || '⚠️ Complete all steps honestly. Fake submissions will be rejected and may result in account suspension.',
+        instructions: instructions || 'Complete all steps honestly.',
         timeLimit: timeLimit ? parseInt(timeLimit) : null
       };
     }
   });
   
   if (formValues) {
-    showLoading('Creating task...');
-    
     try {
-      const taskId = generateId();
+      const taskId = 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
       await setData(`TASKS/${taskId}`, {
         ...formValues,
         status: 'active',
@@ -451,18 +360,26 @@ window.showAddTaskModal = async function() {
         likesData: {},
         completedBy: [],
         createdAt: Date.now(),
-        // Initialize random stats
-        likedByCount: Math.floor(Math.random() * (500 - 100 + 1)) + 100,
-        lootedByCount: Math.floor(Math.random() * (200 - 50 + 1)) + 50
+        likedByCount: Math.floor(Math.random() * 400) + 100,
+        lootedByCount: Math.floor(Math.random() * 150) + 50
       });
       
-      showToast('✅ Task created successfully! It\'s now visible to all users.', 'success');
+      await Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: 'Task created successfully',
+        confirmButtonColor: '#6366f1'
+      });
+      
       loadView('tasks');
     } catch (error) {
       console.error('Error creating task:', error);
-      showToast('❌ Error creating task: ' + error.message, 'error');
-    } finally {
-      hideLoading();
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to create task: ' + error.message,
+        confirmButtonColor: '#ef4444'
+      });
     }
   }
 };
@@ -545,34 +462,74 @@ async function loadPendingTasksView() {
 }
 
 async function approveTask(submissionId, userId, taskId, price) {
-  await updateBalance(userId, price, `Task completion: ${taskId}`);
-  await updateData(`PENDING_TASKS/${submissionId}`, { 
-    status: 'approved', 
-    adminFeedback: '✅ APPROVED BY ADMIN',
-    reviewedAt: getServerTimestamp() 
-  });
-  await runDbTransaction(`USERS/${userId}/taskHistory/pending`, (current) => Math.max(0, (current || 0) - 1));
-  await runDbTransaction(`USERS/${userId}/taskHistory/completed`, (current) => (current || 0) + 1);
-  
-  // Add user to task's completedBy list
-  await runDbTransaction(`TASKS/${taskId}/completedBy`, (current) => {
-    const list = current || [];
-    if (!list.includes(userId)) {
-      list.push(userId);
+  try {
+    // Credit balance
+    await runDbTransaction(`USERS/${userId}/financialInfo/balance`, (current) => (current || 0) + price);
+    await runDbTransaction(`USERS/${userId}/financialInfo/totalEarned`, (current) => (current || 0) + price);
+    
+    // Update submission
+    await updateData(`PENDING_TASKS/${submissionId}`, { 
+      status: 'approved', 
+      adminFeedback: 'APPROVED BY ADMIN',
+      reviewedAt: Date.now()
+    });
+    
+    // Update task history
+    await runDbTransaction(`USERS/${userId}/taskHistory/pending`, (current) => Math.max(0, (current || 0) - 1));
+    await runDbTransaction(`USERS/${userId}/taskHistory/completed`, (current) => (current || 0) + 1);
+    
+    // Add to completedBy
+    await runDbTransaction(`TASKS/${taskId}/completedBy`, (current) => {
+      const list = current || [];
+      if (!list.includes(userId)) {
+        list.push(userId);
+      }
+      return list;
+    });
+    
+    // Create transaction
+    const txnId = 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    await setData(`TRANSACTIONS/${txnId}`, {
+      userId: userId,
+      type: 'credit',
+      amount: price,
+      reason: `Task completion: ${taskId}`,
+      timestamp: Date.now()
+    });
+    
+    // Check referral bonus
+    const userData = await getData(`USERS/${userId}`);
+    const completedBefore = (userData?.taskHistory?.completed || 1) - 1;
+    
+    if (completedBefore === 0 && userData?.personalInfo?.referrerId) {
+      await runDbTransaction(`USERS/${userData.personalInfo.referrerId}/financialInfo/balance`, (current) => (current || 0) + 10);
+      const refTxnId = 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      await setData(`TRANSACTIONS/${refTxnId}`, {
+        userId: userData.personalInfo.referrerId,
+        type: 'credit',
+        amount: 10,
+        reason: 'Referral first task bonus',
+        timestamp: Date.now()
+      });
     }
-    return list;
-  });
-  
-  // Check for referral bonus
-  const userData = await getData(`USERS/${userId}`);
-  const completedBefore = (userData.taskHistory?.completed || 0) - 1;
-  
-  if (completedBefore === 0 && userData.personalInfo?.referrerId) {
-    await updateBalance(userData.personalInfo.referrerId, 10, 'Referral first task bonus');
+    
+    await Swal.fire({
+      icon: 'success',
+      title: 'Approved',
+      text: 'Task approved and user credited ₹' + price,
+      confirmButtonColor: '#6366f1'
+    });
+    
+    loadView('pending');
+  } catch (error) {
+    console.error('Error:', error);
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to approve: ' + error.message,
+      confirmButtonColor: '#ef4444'
+    });
   }
-  
-  showToast('Task approved! User has been credited.', 'success');
-  loadView('pending');
 }
 
 async function rejectTask(submissionId, userId) {
@@ -580,15 +537,38 @@ async function rejectTask(submissionId, userId) {
     title: 'Rejection Reason',
     input: 'text',
     inputPlaceholder: 'Enter reason',
-    showCancelButton: true
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444'
   });
   
   if (reason) {
-    await updateData(`PENDING_TASKS/${submissionId}`, { status: 'rejected', adminFeedback: reason, reviewedAt: getServerTimestamp() });
-    await runDbTransaction(`USERS/${userId}/taskHistory/pending`, (current) => Math.max(0, (current || 0) - 1));
-    await runDbTransaction(`USERS/${userId}/taskHistory/rejected`, (current) => (current || 0) + 1);
-    showToast('Task rejected!', 'success');
-    loadView('pending');
+    try {
+      await updateData(`PENDING_TASKS/${submissionId}`, { 
+        status: 'rejected', 
+        adminFeedback: reason, 
+        reviewedAt: Date.now()
+      });
+      
+      await runDbTransaction(`USERS/${userId}/taskHistory/pending`, (current) => Math.max(0, (current || 0) - 1));
+      await runDbTransaction(`USERS/${userId}/taskHistory/rejected`, (current) => (current || 0) + 1);
+      
+      await Swal.fire({
+        icon: 'success',
+        title: 'Rejected',
+        text: 'Task submission rejected',
+        confirmButtonColor: '#6366f1'
+      });
+      
+      loadView('pending');
+    } catch (error) {
+      console.error('Error:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to reject: ' + error.message,
+        confirmButtonColor: '#ef4444'
+      });
+    }
   }
 }
 
@@ -642,47 +622,61 @@ async function loadWithdrawalsView() {
 
 async function approveWithdrawal(withdrawalId, userId, amount) {
   try {
-    const confirmed = await showConfirm(
-      'Approve Withdrawal',
-      `Approve withdrawal of ${formatCurrency(amount)}? User's balance will be deducted.`,
-      'Approve',
-      'Cancel'
-    );
+    const result = await Swal.fire({
+      title: 'Approve Withdrawal',
+      text: `Approve withdrawal of ₹${amount}? User's balance will be deducted.`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Approve',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#10b981',
+      cancelButtonColor: '#64748b'
+    });
     
-    if (!confirmed) return;
+    if (!result.isConfirmed) return;
     
-    showLoading('Processing...');
-    
-    // Deduct balance
-    await updateBalance(userId, -amount, 'Withdrawal approved - Funds transferred successfully');
+    // Deduct balance using transaction
+    await runDbTransaction(`USERS/${userId}/financialInfo/balance`, (currentBalance) => {
+      return Math.max(0, (currentBalance || 0) - amount);
+    });
     
     // Update withdrawal status
     const timestamp = Date.now();
     await updateData(`WITHDRAWALS/${withdrawalId}`, { 
       status: 'approved', 
-      adminFeedback: '✅ APPROVED BY ADMIN - Funds transferred successfully',
-      adminReason: 'Withdrawal approved and processed',
+      adminFeedback: 'Approved and processed',
+      adminReason: 'Withdrawal approved',
       processedAt: timestamp,
       approvedBy: currentUser.uid
     });
     
-    // Create transaction record for approval
-    await pushData('TRANSACTIONS', {
+    // Create transaction record
+    const txnId = 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    await setData(`TRANSACTIONS/${txnId}`, {
       userId: userId,
       type: 'debit',
       amount: amount,
-      reason: `✅ Withdrawal Approved by Admin - Funds transferred`,
+      reason: 'Withdrawal Approved - Funds transferred',
       timestamp: timestamp,
       withdrawalId: withdrawalId
     });
     
-    showToast('Withdrawal approved! User balance deducted successfully.', 'success');
+    await Swal.fire({
+      icon: 'success',
+      title: 'Success',
+      text: 'Withdrawal approved and balance deducted',
+      confirmButtonColor: '#6366f1'
+    });
+    
     loadView('withdrawals');
   } catch (error) {
     console.error('Error approving withdrawal:', error);
-    showToast('Error processing withdrawal: ' + error.message, 'error');
-  } finally {
-    hideLoading();
+    await Swal.fire({
+      icon: 'error',
+      title: 'Error',
+      text: 'Failed to approve withdrawal: ' + error.message,
+      confirmButtonColor: '#ef4444'
+    });
   }
 }
 
@@ -690,8 +684,9 @@ async function rejectWithdrawal(withdrawalId, userId) {
   const { value: reason } = await Swal.fire({
     title: 'Rejection Reason',
     input: 'text',
-    inputPlaceholder: 'Enter reason (required)',
+    inputPlaceholder: 'Enter reason',
     showCancelButton: true,
+    confirmButtonColor: '#ef4444',
     inputValidator: (value) => {
       if (!value) {
         return 'Please enter a reason';
@@ -701,19 +696,17 @@ async function rejectWithdrawal(withdrawalId, userId) {
   
   if (reason) {
     try {
-      showLoading('Processing...');
-      
-      // Update withdrawal status
       const timestamp = Date.now();
       await updateData(`WITHDRAWALS/${withdrawalId}`, { 
         status: 'rejected', 
-        adminReason: reason, 
+        adminReason: reason,
+        adminFeedback: `Rejected: ${reason}`,
         processedAt: timestamp,
         rejectedBy: currentUser.uid
       });
       
-      // Create transaction record
-      await pushData('TRANSACTIONS', {
+      const txnId = 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      await setData(`TRANSACTIONS/${txnId}`, {
         userId: userId,
         type: 'info',
         amount: 0,
@@ -722,13 +715,22 @@ async function rejectWithdrawal(withdrawalId, userId) {
         withdrawalId: withdrawalId
       });
       
-      showToast('Withdrawal rejected!', 'success');
+      await Swal.fire({
+        icon: 'success',
+        title: 'Rejected',
+        text: 'Withdrawal request rejected',
+        confirmButtonColor: '#6366f1'
+      });
+      
       loadView('withdrawals');
     } catch (error) {
-      console.error('Error rejecting withdrawal:', error);
-      showToast('Error processing rejection: ' + error.message, 'error');
-    } finally {
-      hideLoading();
+      console.error('Error:', error);
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Failed to reject: ' + error.message,
+        confirmButtonColor: '#ef4444'
+      });
     }
   }
 }
