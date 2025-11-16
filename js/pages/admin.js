@@ -624,7 +624,7 @@ async function approveWithdrawal(withdrawalId, userId, amount) {
   try {
     const result = await Swal.fire({
       title: 'Approve Withdrawal',
-      text: `Approve withdrawal of ₹${amount}? User's balance will be deducted.`,
+      text: `Approve withdrawal of ₹${amount}?`,
       icon: 'warning',
       showCancelButton: true,
       confirmButtonText: 'Approve',
@@ -635,19 +635,15 @@ async function approveWithdrawal(withdrawalId, userId, amount) {
     
     if (!result.isConfirmed) return;
     
-    // Deduct balance using transaction
-    await runDbTransaction(`USERS/${userId}/financialInfo/balance`, (currentBalance) => {
-      return Math.max(0, (currentBalance || 0) - amount);
-    });
+    showLoading('Processing...');
     
     // Update withdrawal status
     const timestamp = Date.now();
     await updateData(`WITHDRAWALS/${withdrawalId}`, { 
       status: 'approved', 
       adminFeedback: 'Approved and processed',
-      adminReason: 'Withdrawal approved',
       processedAt: timestamp,
-      approvedBy: currentUser.uid
+      approvedBy: currentUser?.uid || 'admin'
     });
     
     // Create transaction record
@@ -661,15 +657,18 @@ async function approveWithdrawal(withdrawalId, userId, amount) {
       withdrawalId: withdrawalId
     });
     
+    hideLoading();
+    
     await Swal.fire({
       icon: 'success',
       title: 'Success',
-      text: 'Withdrawal approved and balance deducted',
+      text: 'Withdrawal approved successfully',
       confirmButtonColor: '#6366f1'
     });
     
     loadView('withdrawals');
   } catch (error) {
+    hideLoading();
     console.error('Error approving withdrawal:', error);
     await Swal.fire({
       icon: 'error',
@@ -696,13 +695,15 @@ async function rejectWithdrawal(withdrawalId, userId) {
   
   if (reason) {
     try {
+      showLoading('Processing...');
+      
       const timestamp = Date.now();
       await updateData(`WITHDRAWALS/${withdrawalId}`, { 
         status: 'rejected', 
         adminReason: reason,
         adminFeedback: `Rejected: ${reason}`,
         processedAt: timestamp,
-        rejectedBy: currentUser.uid
+        rejectedBy: currentUser?.uid || 'admin'
       });
       
       const txnId = 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
@@ -715,6 +716,8 @@ async function rejectWithdrawal(withdrawalId, userId) {
         withdrawalId: withdrawalId
       });
       
+      hideLoading();
+      
       await Swal.fire({
         icon: 'success',
         title: 'Rejected',
@@ -724,6 +727,7 @@ async function rejectWithdrawal(withdrawalId, userId) {
       
       loadView('withdrawals');
     } catch (error) {
+      hideLoading();
       console.error('Error:', error);
       await Swal.fire({
         icon: 'error',
@@ -791,6 +795,8 @@ window.showBulkBonusModal = async function() {
       '<input id="bonusReason" class="swal2-input" placeholder="Reason for bonus (e.g., Festival Bonus, Thank You Bonus)" style="margin-bottom: 10px;">',
     focusConfirm: false,
     showCancelButton: true,
+    confirmButtonText: 'Distribute',
+    confirmButtonColor: '#6366f1',
     preConfirm: () => {
       const amount = document.getElementById('bonusAmount').value;
       const reason = document.getElementById('bonusReason').value;
@@ -810,16 +816,27 @@ window.showBulkBonusModal = async function() {
   });
   
   if (formValues) {
-    const confirmed = await showConfirm(
-      'Confirm Bulk Bonus',
-      `Give ₹${formValues.amount} to ALL users for: "${formValues.reason}"?`,
-      'Confirm',
-      'Cancel'
-    );
+    const confirmed = await Swal.fire({
+      title: 'Confirm Bulk Bonus',
+      text: `Give ₹${formValues.amount} to ALL users for: "${formValues.reason}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, Distribute',
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: '#6366f1',
+      cancelButtonColor: '#64748b'
+    });
     
-    if (!confirmed) return;
+    if (!confirmed.isConfirmed) return;
     
-    showLoading('Distributing bonus...');
+    Swal.fire({
+      title: 'Distributing Bonus...',
+      html: 'Please wait while we distribute bonus to all users',
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
     
     try {
       const allUsers = await getData('USERS');
@@ -829,27 +846,46 @@ window.showBulkBonusModal = async function() {
         
         for (const uid in allUsers) {
           // Add bonus to user balance
-          await updateBalance(uid, formValues.amount, `🎁 Admin Bonus: ${formValues.reason}`);
+          await runDbTransaction(`USERS/${uid}/financialInfo/balance`, (current) => (current || 0) + formValues.amount);
+          await runDbTransaction(`USERS/${uid}/financialInfo/totalEarned`, (current) => (current || 0) + formValues.amount);
           
           // Create transaction record
-          await pushData('TRANSACTIONS', {
+          const txnId = 'txn_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+          await setData(`TRANSACTIONS/${txnId}`, {
             userId: uid,
             type: 'credit',
             amount: formValues.amount,
-            reason: `🎁 Bulk Bonus from Admin: ${formValues.reason}`,
+            reason: `🎁 Bulk Bonus: ${formValues.reason}`,
             timestamp: timestamp
           });
           
           count++;
         }
         
-        showToast(`Bulk bonus of ₹${formValues.amount} distributed to ${count} users!`, 'success');
+        await Swal.fire({
+          icon: 'success',
+          title: 'Success!',
+          text: `Bulk bonus of ₹${formValues.amount} distributed to ${count} users!`,
+          confirmButtonColor: '#6366f1'
+        });
+        
+        loadView('users');
+      } else {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: 'No users found',
+          confirmButtonColor: '#ef4444'
+        });
       }
     } catch (error) {
       console.error('Bulk bonus error:', error);
-      showToast('Error distributing bonus: ' + error.message, 'error');
-    } finally {
-      hideLoading();
+      await Swal.fire({
+        icon: 'error',
+        title: 'Error',
+        text: 'Error distributing bonus: ' + error.message,
+        confirmButtonColor: '#ef4444'
+      });
     }
   }
 };

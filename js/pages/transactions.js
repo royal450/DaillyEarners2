@@ -9,28 +9,27 @@ let currentUser = null;
 // Initialize page
 document.addEventListener('DOMContentLoaded', async function() {
   currentUser = await initAuthGuard(onUserAuthenticated);
-  await initThemeToggle(); // Initialize theme toggle after user is authenticated
+  await initThemeToggle();
 });
 
 async function onUserAuthenticated(user) {
   currentUser = user;
   document.body.style.visibility = 'visible';
-
   await loadTransactions();
 }
 
 // Initialize theme toggle
 async function initThemeToggle() {
-      const { initGlobalTheme, toggleTheme } = await import('../shared/utils.js');
-      await initGlobalTheme(currentUser.uid);
+  const { initGlobalTheme, toggleTheme } = await import('../shared/utils.js');
+  await initGlobalTheme(currentUser.uid);
 
-      const themeToggle = document.getElementById('themeToggle');
-      if (themeToggle) {
-        themeToggle.addEventListener('click', async () => {
-          await toggleTheme(currentUser.uid);
-        });
-      }
-    }
+  const themeToggle = document.getElementById('themeToggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', async () => {
+      await toggleTheme(currentUser.uid);
+    });
+  }
+}
 
 // Load transactions
 async function loadTransactions() {
@@ -55,119 +54,88 @@ async function loadTransactions() {
   displayTransactions(userTransactions);
 }
 
-// Display transactions with modern design
+// Display transactions with modern compact design
 function displayTransactions(transactions) {
   const container = document.getElementById('transactionsContainer');
   if (!container) return;
 
   container.innerHTML = transactions.map(txn => {
     let amountColor = '#64748b';
-    let bgGradient = 'rgba(100, 116, 139, 0.1)';
     let iconClass = 'fa-exchange-alt';
-    let iconColor = '#64748b';
+    let iconBg = 'rgba(100, 116, 139, 0.1)';
     let amountPrefix = '';
-    let borderColor = 'rgba(100, 116, 139, 0.2)';
-    
+
     if (txn.type === 'credit') {
-      amountColor = '#22c55e';
-      bgGradient = 'linear-gradient(135deg, rgba(34, 197, 94, 0.15), rgba(34, 197, 94, 0.05))';
+      amountColor = '#10b981';
       iconClass = 'fa-arrow-down';
-      iconColor = '#22c55e';
+      iconBg = 'rgba(16, 185, 129, 0.1)';
       amountPrefix = '+';
-      borderColor = 'rgba(34, 197, 94, 0.3)';
     } else if (txn.type === 'debit') {
       amountColor = '#ef4444';
-      bgGradient = 'linear-gradient(135deg, rgba(239, 68, 68, 0.15), rgba(239, 68, 68, 0.05))';
       iconClass = 'fa-arrow-up';
-      iconColor = '#ef4444';
+      iconBg = 'rgba(239, 68, 68, 0.1)';
       amountPrefix = '-';
-      borderColor = 'rgba(239, 68, 68, 0.3)';
     }
-    
+
     return `
       <div style="
-        position: relative;
-        padding: 20px;
         background: var(--card-bg);
-        backdrop-filter: blur(20px);
-        border-radius: 16px;
-        border: 1.5px solid ${borderColor};
-        margin-bottom: 16px;
-        overflow: hidden;
+        border-radius: 14px;
+        padding: 14px;
+        margin-bottom: 10px;
+        border: 1px solid var(--border-color);
         transition: all 0.3s ease;
         cursor: pointer;
-      " class="transaction-card">
-        <!-- Background Gradient Overlay -->
-        <div style="
-          position: absolute;
-          top: 0;
-          right: 0;
-          width: 150px;
-          height: 100%;
-          background: ${bgGradient};
-          opacity: 0.6;
-          border-radius: 0 16px 16px 0;
-        "></div>
-        
-        <!-- Content -->
-        <div style="position: relative; z-index: 1;">
-          <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 12px;">
-            <!-- Icon -->
-            <div style="
-              width: 48px;
-              height: 48px;
-              border-radius: 50%;
-              background: ${bgGradient};
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              flex-shrink: 0;
-            ">
-              <i class="fas ${iconClass}" style="font-size: 20px; color: ${iconColor};"></i>
+      " class="transaction-item">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <!-- Icon -->
+          <div style="
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: ${iconBg};
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          ">
+            <i class="fas ${iconClass}" style="font-size: 16px; color: ${amountColor};"></i>
+          </div>
+
+          <!-- Details -->
+          <div style="flex: 1; min-width: 0;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--text-color); margin-bottom: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+              ${txn.reason || 'Transaction'}
             </div>
-            
-            <!-- Transaction Details -->
-            <div style="flex: 1; min-width: 0;">
-              <div style="font-size: 15px; font-weight: 700; color: var(--text-color); margin-bottom: 4px; line-height: 1.3;">
-                ${txn.reason || 'Transaction'}
-              </div>
-              <div style="font-size: 12px; color: var(--text-color); opacity: 0.65; display: flex; align-items: center; gap: 6px;">
-                <i class="fas fa-clock" style="font-size: 10px;"></i>
-                ${formatDateTime(txn.timestamp)}
-              </div>
+            <div style="font-size: 11px; color: var(--icon-color); opacity: 0.8;">
+              ${formatDateTime(txn.timestamp)}
             </div>
-            
-            <!-- Amount -->
-            <div style="
-              padding: 12px 20px;
-              background: ${bgGradient};
-              border-radius: 12px;
-              text-align: right;
-              border: 1.5px solid ${borderColor};
-            ">
-              <div style="font-size: 20px; font-weight: 900; color: ${amountColor}; letter-spacing: -0.5px;">
-                ${amountPrefix}${formatCurrency(txn.amount)}
-              </div>
-              <div style="font-size: 9px; font-weight: 700; color: ${amountColor}; opacity: 0.7; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px;">
-                ${txn.type || 'Transaction'}
-              </div>
+          </div>
+
+          <!-- Amount -->
+          <div style="text-align: right; flex-shrink: 0;">
+            <div style="font-size: 16px; font-weight: 900; color: ${amountColor};">
+              ${amountPrefix}${formatCurrency(txn.amount)}
+            </div>
+            <div style="font-size: 9px; font-weight: 600; color: ${amountColor}; opacity: 0.7; text-transform: uppercase;">
+              ${txn.type || 'txn'}
             </div>
           </div>
         </div>
       </div>
     `;
   }).join('');
-  
+
   // Add hover effects
   setTimeout(() => {
-    document.querySelectorAll('.transaction-card').forEach(card => {
-      card.addEventListener('mouseenter', () => {
-        card.style.transform = 'translateY(-4px) scale(1.01)';
-        card.style.boxShadow = '0 12px 30px rgba(0, 0, 0, 0.12)';
+    document.querySelectorAll('.transaction-item').forEach(item => {
+      item.addEventListener('mouseenter', () => {
+        item.style.transform = 'translateY(-2px)';
+        item.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
       });
-      card.addEventListener('mouseleave', () => {
-        card.style.transform = 'translateY(0) scale(1)';
-        card.style.boxShadow = 'none';
+      item.addEventListener('mouseleave', () => {
+        item.style.transform = 'translateY(0)';
+        item.style.boxShadow = 'none';
       });
     });
   }, 100);

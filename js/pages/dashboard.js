@@ -264,16 +264,14 @@ function createTaskCard(task) {
   const card = document.createElement('div');
   card.className = 'task-card';
   
-  // Check if user has liked this task (from localStorage - client-side only)
-  const userLikesKey = `task_likes_${currentUser.uid}`;
-  const userLikes = JSON.parse(localStorage.getItem(userLikesKey) || '{}');
-  const userLiked = userLikes[task.id] === true;
+  // Check if user has liked this task (from database)
+  const userLiked = task.likesData && task.likesData[currentUser.uid] === true;
   
-  // Like count is just for display (not editable by users)
+  // Get like count from database
   const likeCount = task.likes || 0;
-  // Use defaults for stats if not set (for older tasks created before this feature)
-  const likedByCount = task.likedByCount || 250;  // Default middle value
-  const lootedByCount = task.lootedByCount || 125;  // Default middle value
+  // Use random defaults for stats if not set
+  const likedByCount = task.likedByCount || Math.floor(Math.random() * 300) + 200;
+  const lootedByCount = task.lootedByCount || Math.floor(Math.random() * 150) + 100;
   
   card.style.cssText = `
     background: var(--card-bg);
@@ -288,83 +286,82 @@ function createTaskCard(task) {
   `;
   
   card.innerHTML = `
-    <!-- Big Thumbnail -->
-    <div style="width: 100%; height: 200px; background: ${task.thumbnail ? `url(${task.thumbnail}) center/cover` : 'var(--accent-gradient)'}; position: relative; overflow: hidden;">
-      <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.6) 100%);"></div>
-      <div style="position: absolute; top: 12px; right: 12px; display: flex; gap: 8px;">
-        <div style="background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); padding: 6px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; color: white;">
-          <i class="fas fa-users"></i> Looted by ${lootedByCount}
+    <!-- Compact Thumbnail -->
+    <div style="width: 100%; height: 140px; background: ${task.thumbnail ? `url(${task.thumbnail}) center/cover` : 'var(--accent-gradient)'}; position: relative; overflow: hidden; border-radius: 20px 20px 0 0;">
+      <div style="position: absolute; inset: 0; background: linear-gradient(to bottom, transparent 40%, rgba(0,0,0,0.7) 100%);"></div>
+      <div style="position: absolute; top: 10px; right: 10px;">
+        <div style="background: rgba(0,0,0,0.7); backdrop-filter: blur(10px); padding: 5px 10px; border-radius: 15px; font-size: 10px; font-weight: 700; color: white;">
+          <i class="fas fa-users" style="font-size: 9px;"></i> ${lootedByCount}
         </div>
       </div>
     </div>
     
     <!-- Card Content -->
-    <div style="padding: 20px;">
+    <div style="padding: 14px;">
       <!-- Title -->
-      <h3 style="font-size: 18px; font-weight: 800; color: var(--text-color); margin-bottom: 8px; line-height: 1.3;">${task.title || 'Task'}</h3>
+      <h3 style="font-size: 15px; font-weight: 800; color: var(--text-color); margin-bottom: 6px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">${task.title || 'Task'}</h3>
       
       <!-- Description -->
-      <p style="font-size: 13px; color: var(--text-color); opacity: 0.75; margin-bottom: 16px; line-height: 1.6; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${task.description || 'Complete this task and earn rewards!'}</p>
+      <p style="font-size: 12px; color: var(--text-color); opacity: 0.7; margin-bottom: 12px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${task.description || 'Complete this task and earn rewards!'}</p>
       
       <!-- Stats Row -->
-      <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px; flex-wrap: wrap;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap;">
         <!-- Like Button -->
         <button 
           class="like-btn" 
           data-task-id="${task.id}"
           style="background: ${userLiked ? 'linear-gradient(135deg, #ef4444, #dc2626)' : 'rgba(99, 102, 241, 0.1)'}; 
                  border: none; 
-                 padding: 8px 16px; 
-                 border-radius: 20px; 
-                 font-size: 12px; 
+                 padding: 6px 12px; 
+                 border-radius: 15px; 
+                 font-size: 11px; 
                  font-weight: 700; 
                  color: ${userLiked ? 'white' : 'var(--accent-color)'}; 
                  cursor: pointer; 
                  transition: all 0.3s ease;
                  display: flex;
                  align-items: center;
-                 gap: 6px;">
-          <i class="fas fa-heart${userLiked ? '' : '-o'}"></i>
+                 gap: 5px;">
+          <i class="fas fa-heart${userLiked ? '' : '-o'}" style="font-size: 10px;"></i>
           <span>${likeCount}</span>
         </button>
         
-        <!-- Liked by stats -->
-        <div style="font-size: 12px; color: var(--text-color); opacity: 0.7; font-weight: 600;">
-          <i class="fas fa-fire" style="color: #f59e0b;"></i> Liked by ${likedByCount}
+        <!-- Stats -->
+        <div style="font-size: 10px; color: var(--text-color); opacity: 0.65; font-weight: 600;">
+          <i class="fas fa-fire" style="color: #f59e0b; font-size: 9px;"></i> ${likedByCount}
         </div>
         
-        <!-- Completed count -->
-        <div style="font-size: 12px; color: var(--text-color); opacity: 0.7; font-weight: 600;">
-          <i class="fas fa-check-circle" style="color: #22c55e;"></i> ${task.completedBy ? task.completedBy.length : 0} completed
+        <div style="font-size: 10px; color: var(--text-color); opacity: 0.65; font-weight: 600;">
+          <i class="fas fa-check-circle" style="color: #22c55e; font-size: 9px;"></i> ${task.completedBy ? task.completedBy.length : 0}
         </div>
       </div>
       
       <!-- Price and Start Button -->
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-        <!-- Price Highlight -->
-        <div style="flex: 1; background: var(--accent-gradient); padding: 16px 20px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);">
-          <div style="font-size: 11px; color: rgba(255,255,255,0.9); font-weight: 600; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Earn</div>
-          <div style="font-size: 24px; font-weight: 900; color: white;">${formatCurrency(task.price || 0)}</div>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <!-- Price -->
+        <div style="flex: 1; background: var(--accent-gradient); padding: 12px; border-radius: 12px; text-align: center; box-shadow: 0 3px 12px rgba(99, 102, 241, 0.3);">
+          <div style="font-size: 9px; color: rgba(255,255,255,0.85); font-weight: 600; margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.3px;">Earn</div>
+          <div style="font-size: 18px; font-weight: 900; color: white;">${formatCurrency(task.price || 0)}</div>
         </div>
         
         <!-- Start Button -->
         <button 
           class="start-task-btn" 
           data-task-id="${task.id}"
-          style="flex: 1; 
+          style="flex: 1.2; 
                  background: linear-gradient(135deg, #10b981, #059669); 
                  border: none; 
-                 padding: 20px 24px; 
-                 border-radius: 16px; 
-                 font-size: 15px; 
+                 padding: 14px 16px; 
+                 border-radius: 12px; 
+                 font-size: 13px; 
                  font-weight: 800; 
                  color: white; 
                  cursor: pointer; 
                  transition: all 0.3s ease;
-                 box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+                 box-shadow: 0 3px 12px rgba(16, 185, 129, 0.4);
                  text-transform: uppercase;
-                 letter-spacing: 0.5px;">
-          <i class="fas fa-rocket"></i> Start Task
+                 letter-spacing: 0.3px;">
+          <i class="fas fa-rocket" style="font-size: 11px;"></i> Start
         </button>
       </div>
     </div>
@@ -415,26 +412,25 @@ function createTaskCard(task) {
   return card;
 }
 
-// Handle task like/unlike (client-side only, stored in localStorage)
+// Handle task like/unlike (database-synced, one-time per user)
 async function handleTaskLike(taskId) {
   try {
-    // Get user's likes from localStorage
-    const userLikesKey = `task_likes_${currentUser.uid}`;
-    const userLikes = JSON.parse(localStorage.getItem(userLikesKey) || '{}');
+    const { runDbTransaction, updateData } = await import('./shared/db.js');
     
-    // Toggle like status
-    if (userLikes[taskId]) {
-      // Unlike
-      delete userLikes[taskId];
+    const taskData = await getData(`TASKS/${taskId}`);
+    const userLiked = taskData?.likesData?.[currentUser.uid] === true;
+    
+    if (userLiked) {
+      // Unlike - decrease count
+      await runDbTransaction(`TASKS/${taskId}/likes`, (current) => Math.max(0, (current || 0) - 1));
+      await updateData(`TASKS/${taskId}/likesData/${currentUser.uid}`, false);
       showToast('Removed from favorites', 'info');
     } else {
-      // Like
-      userLikes[taskId] = true;
+      // Like - increase count (one-time per user)
+      await runDbTransaction(`TASKS/${taskId}/likes`, (current) => (current || 0) + 1);
+      await updateData(`TASKS/${taskId}/likesData/${currentUser.uid}`, true);
       showToast('Added to favorites! ❤️', 'success');
     }
-    
-    // Save to localStorage
-    localStorage.setItem(userLikesKey, JSON.stringify(userLikes));
     
     // Reload tasks to update UI
     await loadTasks();
