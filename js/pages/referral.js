@@ -39,71 +39,101 @@ async function initThemeToggle() {
 
 // Load referral data
 async function loadReferralData() {
-  const userData = await getData(`USERS/${currentUser.uid}`);
-  userRefCode = userData?.personalInfo?.refCode;
+  try {
+    const userData = await getData(`USERS/${currentUser.uid}`);
+    userRefCode = userData?.personalInfo?.refCode;
 
-  if (!userRefCode) return;
+    if (!userRefCode) {
+      console.error('No referral code found for user');
+      showNoReferralCode();
+      return;
+    }
 
-  // Display referral code
-  const refCodeEl = document.getElementById('referralCode');
-  const refLinkEl = document.getElementById('referralLink');
-  const copyBtn = document.getElementById('copyRefLink');
+    // Display referral code
+    const refCodeEl = document.getElementById('referralCode');
+    const refLinkEl = document.getElementById('referralLink');
 
-  const referralLink = `${window.location.origin}/index.html?ref=${userRefCode}`;
+    const referralLink = `${window.location.origin}/index.html?ref=${userRefCode}`;
 
-  if (refCodeEl) {
-    refCodeEl.textContent = userRefCode;
-  }
+    if (refCodeEl) {
+      refCodeEl.textContent = userRefCode;
+    }
 
-  if (refLinkEl) {
-    refLinkEl.textContent = referralLink;
-    refLinkEl.style.wordBreak = 'break-all';
-  }
+    if (refLinkEl) {
+      refLinkEl.textContent = referralLink;
+      refLinkEl.style.wordBreak = 'break-all';
+    }
 
   // Copy button functionality
-  const copyBtnElement = document.getElementById('copyBtn');
-  if (copyBtnElement) {
-    copyBtnElement.addEventListener('click', () => {
-      copyToClipboard(referralLink);
-    });
-  }
+    const copyBtnElement = document.getElementById('copyBtn');
+    if (copyBtnElement) {
+      copyBtnElement.addEventListener('click', () => {
+        copyToClipboard(referralLink);
+      });
+    }
 
-  // Also add copy on click to link itself
+    // Also add copy on click to link itself
+    if (refLinkEl) {
+      refLinkEl.style.cursor = 'pointer';
+      refLinkEl.addEventListener('click', () => {
+        copyToClipboard(referralLink);
+      });
+    }
+
+    // Load referral statistics
+    await loadReferralStats();
+
+    // Load referral list
+    await loadReferralList();
+  } catch (error) {
+    console.error('Error loading referral data:', error);
+    showToast('Error loading referral data', 'error');
+  }
+}
+
+// Show no referral code message
+function showNoReferralCode() {
+  const refLinkEl = document.getElementById('referralLink');
   if (refLinkEl) {
-    refLinkEl.style.cursor = 'pointer';
-    refLinkEl.addEventListener('click', () => {
-      copyToClipboard(referralLink);
-    });
+    refLinkEl.textContent = 'Referral code not found. Please contact support.';
+    refLinkEl.style.color = 'red';
   }
-
-  // Load referral statistics
-  await loadReferralStats();
-
-  // Load referral list
-  await loadReferralList();
 }
 
 // Load referral statistics
 async function loadReferralStats() {
-  const allUsers = await getData('USERS');
+  try {
+    const allUsers = await getData('USERS');
 
-  if (!allUsers) return;
+    if (!allUsers) {
+      updateStatsUI(0, 0);
+      return;
+    }
 
-  let totalReferrals = 0;
-  let totalEarnings = 0;
+    let totalReferrals = 0;
+    let totalEarnings = 0;
 
-  for (const uid in allUsers) {
-    if (allUsers[uid].personalInfo?.referrerId === currentUser.uid) {
-      totalReferrals++;
-      totalEarnings += 5; // ₹5 per referral
+    for (const uid in allUsers) {
+      if (allUsers[uid].personalInfo?.referrerId === currentUser.uid) {
+        totalReferrals++;
+        totalEarnings += 5; // ₹5 per referral
 
-      // Check if referral completed first task (₹10 bonus)
-      if (allUsers[uid].taskHistory?.completed > 0) {
-        totalEarnings += 10;
+        // Check if referral completed first task (₹10 bonus)
+        if (allUsers[uid].taskHistory?.completed > 0) {
+          totalEarnings += 10;
+        }
       }
     }
-  }
 
+    updateStatsUI(totalReferrals, totalEarnings);
+  } catch (error) {
+    console.error('Error loading referral stats:', error);
+    updateStatsUI(0, 0);
+  }
+}
+
+// Update stats UI
+function updateStatsUI(totalReferrals, totalEarnings) {
   const totalRefEl = document.getElementById('totalReferrals');
   const totalEarnedEl = document.getElementById('totalEarned');
 
@@ -118,34 +148,39 @@ async function loadReferralStats() {
 
 // Load referral list
 async function loadReferralList() {
-  const allUsers = await getData('USERS');
+  try {
+    const allUsers = await getData('USERS');
 
-  if (!allUsers) {
-    showNoReferrals();
-    return;
-  }
-
-  const referrals = [];
-
-  for (const uid in allUsers) {
-    if (allUsers[uid].personalInfo?.referrerId === currentUser.uid) {
-      referrals.push({
-        name: allUsers[uid].personalInfo?.name || 'User',
-        joinDate: allUsers[uid].personalInfo?.joinDate,
-        tasksCompleted: allUsers[uid].taskHistory?.completed || 0
-      });
+    if (!allUsers) {
+      showNoReferrals();
+      return;
     }
-  }
 
-  if (referrals.length === 0) {
+    const referrals = [];
+
+    for (const uid in allUsers) {
+      if (allUsers[uid].personalInfo?.referrerId === currentUser.uid) {
+        referrals.push({
+          name: allUsers[uid].personalInfo?.name || 'User',
+          joinDate: allUsers[uid].personalInfo?.joinDate,
+          tasksCompleted: allUsers[uid].taskHistory?.completed || 0
+        });
+      }
+    }
+
+    if (referrals.length === 0) {
+      showNoReferrals();
+      return;
+    }
+
+    // Sort by join date
+    referrals.sort((a, b) => (b.joinDate || 0) - (a.joinDate || 0));
+
+    displayReferrals(referrals);
+  } catch (error) {
+    console.error('Error loading referral list:', error);
     showNoReferrals();
-    return;
   }
-
-  // Sort by join date
-  referrals.sort((a, b) => (b.joinDate || 0) - (a.joinDate || 0));
-
-  displayReferrals(referrals);
 }
 
 // Display referrals

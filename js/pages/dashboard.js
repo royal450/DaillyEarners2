@@ -156,10 +156,10 @@ function updateUserProfile(userData) {
   // Referral code (clickable to copy)
   const referralCode = document.getElementById('referralCode');
   if (referralCode) {
-    const refCode = personalInfo.refCode || 'LOADING';
+    const refCode = personalInfo.refCode || 'N/A';
     referralCode.textContent = refCode;
-    referralCode.style.cursor = refCode !== 'LOADING' ? 'pointer' : 'default';
-    if (refCode !== 'LOADING') {
+    referralCode.style.cursor = refCode !== 'N/A' ? 'pointer' : 'default';
+    if (refCode !== 'N/A') {
       referralCode.onclick = () => {
         const referralLink = `${window.location.origin}/index.html?ref=${refCode}`;
         copyToClipboard(referralLink);
