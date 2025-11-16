@@ -78,8 +78,8 @@ signupForm.addEventListener('submit', async (e) => {
         email: email,
         phone: fullPhone,
         verified: false,
-        joinedAt: Date.now(),
-        referralCode: referralCode
+        joinDate: Date.now(),
+        refCode: referralCode
       },
       financialInfo: {
         balance: 0,
@@ -102,13 +102,15 @@ signupForm.addEventListener('submit', async (e) => {
       const allUsers = await getData('USERS');
       if (allUsers) {
         const referrerId = Object.keys(allUsers).find(
-          uid => allUsers[uid].personalInfo?.referralCode === inviteCode
+          uid => allUsers[uid].personalInfo?.refCode === inviteCode
         );
 
         if (referrerId) {
           userData.personalInfo.referrerId = referrerId;
           // Increment referrer's count
           await runDbTransaction(`USERS/${referrerId}/referrals/count`, (current) => (current || 0) + 1);
+        } else {
+          showToast('Invalid referral code', 'warning');
         }
       }
     }
