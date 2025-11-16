@@ -114,12 +114,20 @@ async function loadReferralStats() {
     let totalEarnings = 0;
 
     for (const uid in allUsers) {
-      if (allUsers[uid].personalInfo?.referrerId === currentUser.uid) {
+      // Skip the current user
+      if (uid === currentUser.uid) continue;
+      
+      const userData = allUsers[uid];
+      const referrerId = userData.personalInfo?.referrerId;
+      
+      // Check if this user was referred by current user
+      if (referrerId && referrerId.toString() === currentUser.uid.toString()) {
         totalReferrals++;
         totalEarnings += 5; // ₹5 per referral
 
         // Check if referral completed first task (₹10 bonus)
-        if (allUsers[uid].taskHistory?.completed > 0) {
+        const completedTasks = userData.taskHistory?.completed || 0;
+        if (completedTasks > 0) {
           totalEarnings += 10;
         }
       }
@@ -159,11 +167,18 @@ async function loadReferralList() {
     const referrals = [];
 
     for (const uid in allUsers) {
-      if (allUsers[uid].personalInfo?.referrerId === currentUser.uid) {
+      // Skip the current user
+      if (uid === currentUser.uid) continue;
+      
+      const userData = allUsers[uid];
+      const referrerId = userData.personalInfo?.referrerId;
+      
+      // Check if this user was referred by current user
+      if (referrerId && referrerId.toString() === currentUser.uid.toString()) {
         referrals.push({
-          name: allUsers[uid].personalInfo?.name || 'User',
-          joinDate: allUsers[uid].personalInfo?.joinDate,
-          tasksCompleted: allUsers[uid].taskHistory?.completed || 0
+          name: userData.personalInfo?.name || 'User',
+          joinDate: userData.personalInfo?.joinDate,
+          tasksCompleted: userData.taskHistory?.completed || 0
         });
       }
     }
@@ -173,7 +188,7 @@ async function loadReferralList() {
       return;
     }
 
-    // Sort by join date
+    // Sort by join date (newest first)
     referrals.sort((a, b) => (b.joinDate || 0) - (a.joinDate || 0));
 
     displayReferrals(referrals);
